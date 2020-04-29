@@ -37,7 +37,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install conan
-          choco install doxygen
+          choco install doxygen.install
       - name: Conan configure
         env:
           CONAN_REVISIONS_ENABLED: 1
