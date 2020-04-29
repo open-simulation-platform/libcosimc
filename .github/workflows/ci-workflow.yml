@@ -26,10 +26,18 @@ jobs:
         uses: actions/setup-python@v1
         with:
           python-version: '3.x'
-      - name: Install dependencies
+      - name: Install dependencies Linux
+        if: ${{ matrix.os == 'ubuntu-18.04' }}
         run: |
           python -m pip install --upgrade pip
           pip install conan
+          sudo apt-get install doxygen
+      - name: Install dependencies Windows
+          if: ${{ matrix.os == 'windows-latest' }}
+          run: |
+            python -m pip install --upgrade pip
+            pip install conan
+            choco install doxygen
       - name: Conan configure
         env:
           CONAN_REVISIONS_ENABLED: 1
