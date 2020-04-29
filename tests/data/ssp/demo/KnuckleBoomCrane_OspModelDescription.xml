@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<OspModelDescription xmlns="http://opensimulationplatform.com/MSMI/OSPModelDescription"
+                     version="0.1">
+    <VariableGroups>
+        <Generic name="actuatorLimits">
+            <Variable ref="Act_Limits[1]"/>
+            <Variable ref="Act_Limits[2]"/>
+            <Variable ref="Act_Limits[3]"/>
+        </Generic>
+        <LinearMechanicalPort name="linear mechanical port">
+            <Force name="force">
+                <Variable ref="p_Crane.e[1]"/>
+                <Variable ref="p_Crane.e[2]"/>
+                <Variable ref="p_Crane.e[3]"/>
+            </Force>
+            <LinearVelocity name="velocity">
+                <Variable ref="p_Crane.f[1]"/>
+                <Variable ref="p_Crane.f[2]"/>
+                <Variable ref="p_Crane.f[3]"/>
+            </LinearVelocity>
+        </LinearMechanicalPort>
+   </VariableGroups>
+</OspModelDescription>
