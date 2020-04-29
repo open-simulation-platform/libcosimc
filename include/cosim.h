@@ -1,7 +1,6 @@
 /**
  *  \file
- *  C library header.
- *  \ingroup csecorec
+ *  Main header file
  */
 #ifndef COSIM_H
 #define COSIM_H
@@ -12,8 +11,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-
-/// \defgroup csecorec C library
 
 #ifdef __cplusplus
 extern "C" {
