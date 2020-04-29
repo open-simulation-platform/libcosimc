@@ -17,13 +17,13 @@ void print_last_error()
     fprintf(
         stderr,
         "Error code %d: %s\n",
-        cse_last_error_code(), cse_last_error_message());
+        cosim_last_error_code(), cosim_last_error_message());
 }
 
 int main()
 {
-    cse_log_setup_simple_console_logging();
-    cse_log_set_output_level(CSE_LOG_SEVERITY_INFO);
+    cosim_log_setup_simple_console_logging();
+    cosim_log_set_output_level(COSIM_LOG_SEVERITY_INFO);
 
     const char* dataDir = getenv("TEST_DATA_DIR");
     if (!dataDir) {
@@ -38,13 +38,13 @@ int main()
         return 1;
     }
 
-    cse_execution* execution = cse_ssp_execution_create(sspDir, false, 0);
+    cosim_execution* execution = cosim_ssp_execution_create(sspDir, false, 0);
     if (!execution) {
         print_last_error();
         return 1;
     }
 
-    cse_execution_destroy(execution);
+    cosim_execution_destroy(execution);
 
     return 0;
 }

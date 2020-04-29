@@ -187,7 +187,7 @@ if(LIBCOSIMC_BUILD_TESTS)
 
     set(tests
             "connections_test"
-            "execution_from_cse_config_test"
+            "execution_from_osp_config_test"
             "execution_from_ssp_custom_algo_test"
             "execution_from_ssp_test"
             "inital_values_test"

@@ -17,15 +17,15 @@ void print_last_error()
     fprintf(
         stderr,
         "Error code %d: %s\n",
-        cse_last_error_code(), cse_last_error_message());
+        cosim_last_error_code(), cosim_last_error_message());
 }
 
 int main()
 {
     int exitCode = 0;
 
-    cse_execution* execution = NULL;
-    cse_slave* slave = NULL;
+    cosim_execution* execution = NULL;
+    cosim_slave* slave = NULL;
 
     const char* dataDir = getenv("TEST_DATA_DIR");
     if (!dataDir) {
@@ -42,24 +42,24 @@ int main()
 
     // ===== Can step n times and get status
     int64_t nanoStepSize = (int64_t)(0.1 * 1.0e9);
-    execution = cse_execution_create(0, nanoStepSize);
+    execution = cosim_execution_create(0, nanoStepSize);
     if (!execution) { goto Lerror; }
 
-    slave = cse_local_slave_create(fmuPath, "slave");
+    slave = cosim_local_slave_create(fmuPath, "slave");
     if (!slave) { goto Lerror; }
 
-    cse_slave_index slaveIndex = cse_execution_add_slave(execution, slave);
+    cosim_slave_index slaveIndex = cosim_execution_add_slave(execution, slave);
     if (slaveIndex < 0) { goto Lerror; }
 
-    size_t nVar = cse_slave_get_num_variables(execution, slaveIndex);
+    size_t nVar = cosim_slave_get_num_variables(execution, slaveIndex);
     if (nVar != 8) {
         fprintf(stderr, "Expected 8 variables, got %zu\n", nVar);
         goto Lfailure;
     }
 
-    cse_variable_description vd[8];
+    cosim_variable_description vd[8];
 
-    rc = cse_slave_get_variables(execution, slaveIndex, &vd[0], nVar);
+    rc = cosim_slave_get_variables(execution, slaveIndex, &vd[0], nVar);
     if (rc < 0) {
         print_last_error();
         goto Lerror;
@@ -67,15 +67,15 @@ int main()
 
     for (size_t i = 0; i < nVar; i++) {
         if (0 == strncmp(vd[i].name, "stringOut", SLAVE_NAME_MAX_SIZE)) {
-            if (vd[i].causality != CSE_VARIABLE_CAUSALITY_OUTPUT) {
+            if (vd[i].causality != COSIM_VARIABLE_CAUSALITY_OUTPUT) {
                 fprintf(stderr, "Expected causality to be output\n");
                 goto Lfailure;
             }
-            if (vd[i].variability != CSE_VARIABLE_VARIABILITY_DISCRETE) {
+            if (vd[i].variability != COSIM_VARIABLE_VARIABILITY_DISCRETE) {
                 fprintf(stderr, "Expected variability to be discrete\n");
                 goto Lfailure;
             }
-            if (vd[i].type != CSE_VARIABLE_TYPE_STRING) {
+            if (vd[i].type != COSIM_VARIABLE_TYPE_STRING) {
                 fprintf(stderr, "Expected type to be string\n");
                 goto Lfailure;
             }
@@ -85,15 +85,15 @@ int main()
             }
         }
         if (0 == strncmp(vd[i].name, "realIn", SLAVE_NAME_MAX_SIZE)) {
-            if (vd[i].causality != CSE_VARIABLE_CAUSALITY_INPUT) {
+            if (vd[i].causality != COSIM_VARIABLE_CAUSALITY_INPUT) {
                 fprintf(stderr, "Expected causality to be input\n");
                 goto Lfailure;
             }
-            if (vd[i].variability != CSE_VARIABLE_VARIABILITY_DISCRETE) {
+            if (vd[i].variability != COSIM_VARIABLE_VARIABILITY_DISCRETE) {
                 fprintf(stderr, "Expected variability to be discrete\n");
                 goto Lfailure;
             }
-            if (vd[i].type != CSE_VARIABLE_TYPE_REAL) {
+            if (vd[i].type != COSIM_VARIABLE_TYPE_REAL) {
                 fprintf(stderr, "Expected type to be real\n");
                 goto Lfailure;
             }
@@ -114,8 +114,8 @@ Lfailure:
     exitCode = 1;
 
 Lcleanup:
-    cse_local_slave_destroy(slave);
-    cse_execution_destroy(execution);
+    cosim_local_slave_destroy(slave);
+    cosim_execution_destroy(execution);
 
     return exitCode;
 }

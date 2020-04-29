@@ -37,36 +37,36 @@ namespace
 constexpr int success = 0;
 constexpr int failure = -1;
 
-cse_errc cpp_to_c_error_code(std::error_code ec)
+cosim_errc cpp_to_c_error_code(std::error_code ec)
 {
     if (ec == cse::errc::bad_file)
-        return CSE_ERRC_BAD_FILE;
+        return COSIM_ERRC_BAD_FILE;
     else if (ec == cse::errc::unsupported_feature)
-        return CSE_ERRC_UNSUPPORTED_FEATURE;
+        return COSIM_ERRC_UNSUPPORTED_FEATURE;
     else if (ec == cse::errc::dl_load_error)
-        return CSE_ERRC_DL_LOAD_ERROR;
+        return COSIM_ERRC_DL_LOAD_ERROR;
     else if (ec == cse::errc::model_error)
-        return CSE_ERRC_MODEL_ERROR;
+        return COSIM_ERRC_MODEL_ERROR;
     else if (ec == cse::errc::simulation_error)
-        return CSE_ERRC_SIMULATION_ERROR;
+        return COSIM_ERRC_SIMULATION_ERROR;
     else if (ec == cse::errc::zip_error)
-        return CSE_ERRC_ZIP_ERROR;
+        return COSIM_ERRC_ZIP_ERROR;
     else if (ec.category() == std::generic_category()) {
         errno = ec.value();
-        return CSE_ERRC_ERRNO;
+        return COSIM_ERRC_ERRNO;
     } else {
-        return CSE_ERRC_UNSPECIFIED;
+        return COSIM_ERRC_UNSPECIFIED;
     }
 }
 
 // These hold information about the last reported error.
 // They should only be set through `set_last_error()` and
 // `handle_current_exception()`.
-thread_local cse_errc g_lastErrorCode;
+thread_local cosim_errc g_lastErrorCode;
 thread_local std::string g_lastErrorMessage;
 
 // Sets the last error code and message directly.
-void set_last_error(cse_errc ec, std::string message)
+void set_last_error(cosim_errc ec, std::string message)
 {
     g_lastErrorCode = ec;
     g_lastErrorMessage = std::move(message);
@@ -93,29 +93,29 @@ void handle_current_exception()
     } catch (const std::system_error& e) {
         set_last_error(e.code(), e.what());
     } catch (const std::invalid_argument& e) {
-        set_last_error(CSE_ERRC_INVALID_ARGUMENT, e.what());
+        set_last_error(COSIM_ERRC_INVALID_ARGUMENT, e.what());
     } catch (const std::out_of_range& e) {
-        set_last_error(CSE_ERRC_OUT_OF_RANGE, e.what());
+        set_last_error(COSIM_ERRC_OUT_OF_RANGE, e.what());
     } catch (const std::exception& e) {
-        set_last_error(CSE_ERRC_UNSPECIFIED, e.what());
+        set_last_error(COSIM_ERRC_UNSPECIFIED, e.what());
     } catch (...) {
         set_last_error(
-            CSE_ERRC_UNSPECIFIED,
+            COSIM_ERRC_UNSPECIFIED,
             "An exception of unknown type was thrown");
     }
 }
 
-constexpr cse_time_point to_integer_time_point(cse::time_point t)
+constexpr cosim_time_point to_integer_time_point(cse::time_point t)
 {
     return t.time_since_epoch().count();
 }
 
-constexpr cse::duration to_duration(cse_duration nanos)
+constexpr cse::duration to_duration(cosim_duration nanos)
 {
     return std::chrono::duration<cse::detail::clock::rep, cse::detail::clock::period>(nanos);
 }
 
-constexpr cse::time_point to_time_point(cse_time_point nanos)
+constexpr cse::time_point to_time_point(cosim_time_point nanos)
 {
     return cse::time_point(to_duration(nanos));
 }
@@ -131,39 +131,39 @@ void safe_strncpy(char* dest, const char* src, std::size_t count)
 } // namespace
 
 
-cse_errc cse_last_error_code()
+cosim_errc cosim_last_error_code()
 {
     return g_lastErrorCode;
 }
 
-const char* cse_last_error_message()
+const char* cosim_last_error_message()
 {
     return g_lastErrorMessage.c_str();
 }
 
-struct cse_execution_s
+struct cosim_execution_s
 {
     std::unique_ptr<cse::execution> cpp_execution;
     cse::entity_index_maps entity_maps;
     std::thread t;
     boost::fibers::future<bool> simulate_result;
     std::exception_ptr simulate_exception_ptr;
-    std::atomic<cse_execution_state> state;
+    std::atomic<cosim_execution_state> state;
     int error_code;
 };
 
-cse_execution* cse_execution_create(cse_time_point startTime, cse_duration stepSize)
+cosim_execution* cosim_execution_create(cosim_time_point startTime, cosim_duration stepSize)
 {
     try {
         // No exceptions are possible right now, so try...catch and unique_ptr
         // are strictly unnecessary, but this will change soon enough.
-        auto execution = std::make_unique<cse_execution>();
+        auto execution = std::make_unique<cosim_execution>();
 
         execution->cpp_execution = std::make_unique<cse::execution>(
             to_time_point(startTime),
             std::make_unique<cse::fixed_step_algorithm>(to_duration(stepSize)));
-        execution->error_code = CSE_ERRC_SUCCESS;
-        execution->state = CSE_EXECUTION_STOPPED;
+        execution->error_code = COSIM_ERRC_SUCCESS;
+        execution->state = COSIM_EXECUTION_STOPPED;
 
         return execution.release();
     } catch (...) {
@@ -172,13 +172,13 @@ cse_execution* cse_execution_create(cse_time_point startTime, cse_duration stepS
     }
 }
 
-cse_execution* cse_config_execution_create(
+cosim_execution* cosim_osp_config_execution_create(
     const char* configPath,
     bool startTimeDefined,
-    cse_time_point startTime)
+    cosim_time_point startTime)
 {
     try {
-        auto execution = std::make_unique<cse_execution>();
+        auto execution = std::make_unique<cosim_execution>();
 
         auto resolver = cse::default_model_uri_resolver();
         const auto config = cse::load_cse_config(configPath, *resolver);
@@ -199,13 +199,13 @@ cse_execution* cse_config_execution_create(
 }
 
 
-cse_execution* cse_ssp_execution_create(
+cosim_execution* cosim_ssp_execution_create(
     const char* sspDir,
     bool startTimeDefined,
-    cse_time_point startTime)
+    cosim_time_point startTime)
 {
     try {
-        auto execution = std::make_unique<cse_execution>();
+        auto execution = std::make_unique<cosim_execution>();
 
         cse::ssp_loader loader;
         const auto config = loader.load(sspDir);
@@ -225,14 +225,14 @@ cse_execution* cse_ssp_execution_create(
     }
 }
 
-cse_execution* cse_ssp_fixed_step_execution_create(
+cosim_execution* cosim_ssp_fixed_step_execution_create(
     const char* sspDir,
     bool startTimeDefined,
-    cse_time_point startTime,
-    cse_duration stepSize)
+    cosim_time_point startTime,
+    cosim_duration stepSize)
 {
     try {
-        auto execution = std::make_unique<cse_execution>();
+        auto execution = std::make_unique<cosim_execution>();
 
         cse::ssp_loader loader;
         const auto config = loader.load(sspDir);
@@ -252,27 +252,27 @@ cse_execution* cse_ssp_fixed_step_execution_create(
     }
 }
 
-int cse_execution_destroy(cse_execution* execution)
+int cosim_execution_destroy(cosim_execution* execution)
 {
     try {
         if (!execution) return success;
-        const auto owned = std::unique_ptr<cse_execution>(execution);
-        cse_execution_stop(execution);
+        const auto owned = std::unique_ptr<cosim_execution>(execution);
+        cosim_execution_stop(execution);
         return success;
     } catch (...) {
-        execution->state = CSE_EXECUTION_ERROR;
-        execution->error_code = CSE_ERRC_UNSPECIFIED;
+        execution->state = COSIM_EXECUTION_ERROR;
+        execution->error_code = COSIM_ERRC_UNSPECIFIED;
         handle_current_exception();
         return failure;
     }
 }
 
-size_t cse_execution_get_num_slaves(cse_execution* execution)
+size_t cosim_execution_get_num_slaves(cosim_execution* execution)
 {
     return execution->entity_maps.simulators.size();
 }
 
-int cse_execution_get_slave_infos(cse_execution* execution, cse_slave_info infos[], size_t numSlaves)
+int cosim_execution_get_slave_infos(cosim_execution* execution, cosim_slave_info infos[], size_t numSlaves)
 {
     try {
         auto ids = execution->entity_maps.simulators;
@@ -286,14 +286,14 @@ int cse_execution_get_slave_infos(cse_execution* execution, cse_slave_info infos
         }
         return success;
     } catch (...) {
-        execution->state = CSE_EXECUTION_ERROR;
-        execution->error_code = CSE_ERRC_UNSPECIFIED;
+        execution->state = COSIM_EXECUTION_ERROR;
+        execution->error_code = COSIM_ERRC_UNSPECIFIED;
         handle_current_exception();
         return failure;
     }
 }
 
-int cse_slave_get_num_variables(cse_execution* execution, cse_slave_index slave)
+int cosim_slave_get_num_variables(cosim_execution* execution, cosim_slave_index slave)
 {
     try {
         return static_cast<int>(execution
@@ -308,64 +308,64 @@ int cse_slave_get_num_variables(cse_execution* execution, cse_slave_index slave)
     }
 }
 
-int cse_get_num_modified_variables(cse_execution* execution)
+int cosim_get_num_modified_variables(cosim_execution* execution)
 {
     return static_cast<int>(execution->cpp_execution->get_modified_variables().size());
 }
 
-cse_variable_variability to_variable_variability(const cse::variable_variability& vv)
+cosim_variable_variability to_variable_variability(const cse::variable_variability& vv)
 {
     switch (vv) {
         case cse::variable_variability::constant:
-            return CSE_VARIABLE_VARIABILITY_CONSTANT;
+            return COSIM_VARIABLE_VARIABILITY_CONSTANT;
         case cse::variable_variability::continuous:
-            return CSE_VARIABLE_VARIABILITY_CONTINUOUS;
+            return COSIM_VARIABLE_VARIABILITY_CONTINUOUS;
         case cse::variable_variability::discrete:
-            return CSE_VARIABLE_VARIABILITY_DISCRETE;
+            return COSIM_VARIABLE_VARIABILITY_DISCRETE;
         case cse::variable_variability::fixed:
-            return CSE_VARIABLE_VARIABILITY_FIXED;
+            return COSIM_VARIABLE_VARIABILITY_FIXED;
         case cse::variable_variability::tunable:
-            return CSE_VARIABLE_VARIABILITY_TUNABLE;
+            return COSIM_VARIABLE_VARIABILITY_TUNABLE;
         default:
             throw std::invalid_argument("Invalid variable variability!");
     }
 }
 
-cse_variable_causality to_variable_causality(const cse::variable_causality& vc)
+cosim_variable_causality to_variable_causality(const cse::variable_causality& vc)
 {
     switch (vc) {
         case cse::variable_causality::input:
-            return CSE_VARIABLE_CAUSALITY_INPUT;
+            return COSIM_VARIABLE_CAUSALITY_INPUT;
         case cse::variable_causality::output:
-            return CSE_VARIABLE_CAUSALITY_OUTPUT;
+            return COSIM_VARIABLE_CAUSALITY_OUTPUT;
         case cse::variable_causality::parameter:
-            return CSE_VARIABLE_CAUSALITY_PARAMETER;
+            return COSIM_VARIABLE_CAUSALITY_PARAMETER;
         case cse::variable_causality::calculated_parameter:
-            return CSE_VARIABLE_CAUSALITY_CALCULATEDPARAMETER;
+            return COSIM_VARIABLE_CAUSALITY_CALCULATEDPARAMETER;
         case cse::variable_causality::local:
-            return CSE_VARIABLE_CAUSALITY_LOCAL;
+            return COSIM_VARIABLE_CAUSALITY_LOCAL;
         default:
             throw std::invalid_argument("Invalid variable causality!");
     }
 }
 
-cse_variable_type to_c_variable_type(const cse::variable_type& vt)
+cosim_variable_type to_c_variable_type(const cse::variable_type& vt)
 {
     switch (vt) {
         case cse::variable_type::real:
-            return CSE_VARIABLE_TYPE_REAL;
+            return COSIM_VARIABLE_TYPE_REAL;
         case cse::variable_type::integer:
-            return CSE_VARIABLE_TYPE_INTEGER;
+            return COSIM_VARIABLE_TYPE_INTEGER;
         case cse::variable_type::boolean:
-            return CSE_VARIABLE_TYPE_BOOLEAN;
+            return COSIM_VARIABLE_TYPE_BOOLEAN;
         case cse::variable_type::string:
-            return CSE_VARIABLE_TYPE_STRING;
+            return COSIM_VARIABLE_TYPE_STRING;
         default:
             throw std::invalid_argument("Invalid variable type!");
     }
 }
 
-void translate_variable_description(const cse::variable_description& vd, cse_variable_description& cvd)
+void translate_variable_description(const cse::variable_description& vd, cosim_variable_description& cvd)
 {
     safe_strncpy(cvd.name, vd.name.c_str(), SLAVE_NAME_MAX_SIZE);
     cvd.reference = vd.reference;
@@ -374,7 +374,7 @@ void translate_variable_description(const cse::variable_description& vd, cse_var
     cvd.variability = to_variable_variability(vd.variability);
 }
 
-int cse_slave_get_variables(cse_execution* execution, cse_slave_index slave, cse_variable_description variables[], size_t numVariables)
+int cosim_slave_get_variables(cosim_execution* execution, cosim_slave_index slave, cosim_variable_description variables[], size_t numVariables)
 {
     try {
         const auto vars = execution
@@ -393,7 +393,7 @@ int cse_slave_get_variables(cse_execution* execution, cse_slave_index slave, cse
     }
 }
 
-struct cse_slave_s
+struct cosim_slave_s
 {
     std::string address;
     std::string modelName;
@@ -401,12 +401,12 @@ struct cse_slave_s
     std::shared_ptr<cse::slave> instance;
 };
 
-cse_slave* cse_local_slave_create(const char* fmuPath, const char* instanceName)
+cosim_slave* cosim_local_slave_create(const char* fmuPath, const char* instanceName)
 {
     try {
         const auto importer = cse::fmi::importer::create();
         const auto fmu = importer->import(fmuPath);
-        auto slave = std::make_unique<cse_slave>();
+        auto slave = std::make_unique<cosim_slave>();
         slave->modelName = fmu->model_description()->name;
         slave->instanceName = std::string(instanceName);
         slave->instance = fmu->instantiate_slave(slave->instanceName);
@@ -419,7 +419,7 @@ cse_slave* cse_local_slave_create(const char* fmuPath, const char* instanceName)
     }
 }
 
-int cse_execution_set_real_initial_value(cse_execution* execution, cse_slave_index slaveIndex, cse_value_reference vr, double value)
+int cosim_execution_set_real_initial_value(cosim_execution* execution, cosim_slave_index slaveIndex, cosim_value_reference vr, double value)
 {
     try {
         execution->cpp_execution->set_real_initial_value(slaveIndex, vr, value);
@@ -430,7 +430,7 @@ int cse_execution_set_real_initial_value(cse_execution* execution, cse_slave_ind
     return success;
 }
 
-int cse_execution_set_integer_initial_value(cse_execution* execution, cse_slave_index slaveIndex, cse_value_reference vr, int value)
+int cosim_execution_set_integer_initial_value(cosim_execution* execution, cosim_slave_index slaveIndex, cosim_value_reference vr, int value)
 {
     try {
         execution->cpp_execution->set_integer_initial_value(slaveIndex, vr, value);
@@ -441,7 +441,7 @@ int cse_execution_set_integer_initial_value(cse_execution* execution, cse_slave_
     return success;
 }
 
-int cse_execution_set_boolean_initial_value(cse_execution* execution, cse_slave_index slaveIndex, cse_value_reference vr, bool value)
+int cosim_execution_set_boolean_initial_value(cosim_execution* execution, cosim_slave_index slaveIndex, cosim_value_reference vr, bool value)
 {
     try {
         execution->cpp_execution->set_boolean_initial_value(slaveIndex, vr, value);
@@ -452,7 +452,7 @@ int cse_execution_set_boolean_initial_value(cse_execution* execution, cse_slave_
     return success;
 }
 
-int cse_execution_set_string_initial_value(cse_execution* execution, cse_slave_index slaveIndex, cse_value_reference vr, char* value)
+int cosim_execution_set_string_initial_value(cosim_execution* execution, cosim_slave_index slaveIndex, cosim_value_reference vr, char* value)
 {
     try {
         execution->cpp_execution->set_string_initial_value(slaveIndex, vr, value);
@@ -463,11 +463,11 @@ int cse_execution_set_string_initial_value(cse_execution* execution, cse_slave_i
     return success;
 }
 
-int cse_local_slave_destroy(cse_slave* slave)
+int cosim_local_slave_destroy(cosim_slave* slave)
 {
     try {
         if (!slave) return success;
-        const auto owned = std::unique_ptr<cse_slave>(slave);
+        const auto owned = std::unique_ptr<cosim_slave>(slave);
         return success;
     } catch (...) {
         handle_current_exception();
@@ -475,9 +475,9 @@ int cse_local_slave_destroy(cse_slave* slave)
     }
 }
 
-cse_slave_index cse_execution_add_slave(
-    cse_execution* execution,
-    cse_slave* slave)
+cosim_slave_index cosim_execution_add_slave(
+    cosim_execution* execution,
+    cosim_slave* slave)
 {
     try {
         auto index = execution->cpp_execution->add_slave(cse::make_background_thread_slave(slave->instance), slave->instanceName);
@@ -489,57 +489,57 @@ cse_slave_index cse_execution_add_slave(
     }
 }
 
-void cse_execution_step(cse_execution* execution)
+void cosim_execution_step(cosim_execution* execution)
 {
     execution->cpp_execution->step();
 }
 
-int cse_execution_step(cse_execution* execution, size_t numSteps)
+int cosim_execution_step(cosim_execution* execution, size_t numSteps)
 {
     if (execution->cpp_execution->is_running()) {
         return success;
     } else {
-        execution->state = CSE_EXECUTION_RUNNING;
+        execution->state = COSIM_EXECUTION_RUNNING;
         for (size_t i = 0; i < numSteps; i++) {
             try {
-                cse_execution_step(execution);
+                cosim_execution_step(execution);
             } catch (...) {
                 handle_current_exception();
-                execution->state = CSE_EXECUTION_ERROR;
+                execution->state = COSIM_EXECUTION_ERROR;
                 return failure;
             }
         }
-        execution->state = CSE_EXECUTION_STOPPED;
+        execution->state = COSIM_EXECUTION_STOPPED;
         return success;
     }
 }
 
-int cse_execution_simulate_until(cse_execution* execution, cse_time_point targetTime)
+int cosim_execution_simulate_until(cosim_execution* execution, cosim_time_point targetTime)
 {
     if (execution->cpp_execution->is_running()) {
-        set_last_error(CSE_ERRC_ILLEGAL_STATE, "Function 'cse_execution_simulate_until' may not be called while simulation is running!");
+        set_last_error(COSIM_ERRC_ILLEGAL_STATE, "Function 'cosim_execution_simulate_until' may not be called while simulation is running!");
         return failure;
     } else {
-        execution->state = CSE_EXECUTION_RUNNING;
+        execution->state = COSIM_EXECUTION_RUNNING;
         try {
             const bool notStopped = execution->cpp_execution->simulate_until(to_time_point(targetTime)).get();
-            execution->state = CSE_EXECUTION_STOPPED;
+            execution->state = COSIM_EXECUTION_STOPPED;
             return notStopped;
         } catch (...) {
             handle_current_exception();
-            execution->state = CSE_EXECUTION_ERROR;
+            execution->state = COSIM_EXECUTION_ERROR;
             return failure;
         }
     }
 }
 
-int cse_execution_start(cse_execution* execution)
+int cosim_execution_start(cosim_execution* execution)
 {
     if (execution->t.joinable()) {
         return success;
     } else {
         try {
-            execution->state = CSE_EXECUTION_RUNNING;
+            execution->state = COSIM_EXECUTION_RUNNING;
             auto task = boost::fibers::packaged_task<bool()>([execution]() {
                 return execution->cpp_execution->simulate_until(std::nullopt).get();
             });
@@ -548,13 +548,13 @@ int cse_execution_start(cse_execution* execution)
             return success;
         } catch (...) {
             handle_current_exception();
-            execution->state = CSE_EXECUTION_ERROR;
+            execution->state = COSIM_EXECUTION_ERROR;
             return failure;
         }
     }
 }
 
-void execution_async_health_check(cse_execution* execution)
+void execution_async_health_check(cosim_execution* execution)
 {
     if (execution->simulate_result.valid()) {
         const auto status = execution->simulate_result.wait_for(std::chrono::duration<int64_t>());
@@ -569,7 +569,7 @@ void execution_async_health_check(cse_execution* execution)
     }
 }
 
-int cse_execution_stop(cse_execution* execution)
+int cosim_execution_stop(cosim_execution* execution)
 {
     try {
         execution->cpp_execution->stop_simulation();
@@ -577,17 +577,17 @@ int cse_execution_stop(cse_execution* execution)
             execution->simulate_result.get();
             execution->t.join();
         }
-        execution->state = CSE_EXECUTION_STOPPED;
+        execution->state = COSIM_EXECUTION_STOPPED;
         return success;
     } catch (...) {
         execution->t.join();
         handle_current_exception();
-        execution->state = CSE_EXECUTION_ERROR;
+        execution->state = COSIM_EXECUTION_ERROR;
         return failure;
     }
 }
 
-int cse_execution_get_status(cse_execution* execution, cse_execution_status* status)
+int cosim_execution_get_status(cosim_execution* execution, cosim_execution_status* status)
 {
     try {
         status->error_code = execution->error_code;
@@ -600,15 +600,15 @@ int cse_execution_get_status(cse_execution* execution, cse_execution_status* sta
         return success;
     } catch (...) {
         handle_current_exception();
-        execution->error_code = cse_last_error_code();
-        execution->state = CSE_EXECUTION_ERROR;
+        execution->error_code = cosim_last_error_code();
+        execution->state = COSIM_EXECUTION_ERROR;
         status->error_code = execution->error_code;
         status->state = execution->state;
         return failure;
     }
 }
 
-int cse_execution_enable_real_time_simulation(cse_execution* execution)
+int cosim_execution_enable_real_time_simulation(cosim_execution* execution)
 {
     try {
         execution->cpp_execution->enable_real_time_simulation();
@@ -619,7 +619,7 @@ int cse_execution_enable_real_time_simulation(cse_execution* execution)
     }
 }
 
-int cse_execution_disable_real_time_simulation(cse_execution* execution)
+int cosim_execution_disable_real_time_simulation(cosim_execution* execution)
 {
     try {
         execution->cpp_execution->disable_real_time_simulation();
@@ -630,7 +630,7 @@ int cse_execution_disable_real_time_simulation(cse_execution* execution)
     }
 }
 
-int cse_execution_set_real_time_factor_target(cse_execution* execution, double realTimeFactor)
+int cosim_execution_set_real_time_factor_target(cosim_execution* execution, double realTimeFactor)
 {
     try {
         execution->cpp_execution->set_real_time_factor_target(realTimeFactor);
@@ -641,16 +641,16 @@ int cse_execution_set_real_time_factor_target(cse_execution* execution, double r
     }
 }
 
-struct cse_observer_s
+struct cosim_observer_s
 {
     std::shared_ptr<cse::observer> cpp_observer;
 };
 
-int cse_observer_destroy(cse_observer* observer)
+int cosim_observer_destroy(cosim_observer* observer)
 {
     try {
         if (!observer) return success;
-        const auto owned = std::unique_ptr<cse_observer>(observer);
+        const auto owned = std::unique_ptr<cosim_observer>(observer);
         return success;
     } catch (...) {
         handle_current_exception();
@@ -659,7 +659,7 @@ int cse_observer_destroy(cse_observer* observer)
 }
 
 int connect_variables(
-    cse_execution* execution,
+    cosim_execution* execution,
     cse::simulator_index outputSimulator,
     cse::value_reference outputVariable,
     cse::simulator_index inputSimulator,
@@ -677,32 +677,32 @@ int connect_variables(
     }
 }
 
-int cse_execution_connect_real_variables(
-    cse_execution* execution,
-    cse_slave_index outputSlaveIndex,
-    cse_value_reference outputValueReference,
-    cse_slave_index inputSlaveIndex,
-    cse_value_reference inputValueReference)
+int cosim_execution_connect_real_variables(
+    cosim_execution* execution,
+    cosim_slave_index outputSlaveIndex,
+    cosim_value_reference outputValueReference,
+    cosim_slave_index inputSlaveIndex,
+    cosim_value_reference inputValueReference)
 {
     return connect_variables(execution, outputSlaveIndex, outputValueReference, inputSlaveIndex, inputValueReference,
         cse::variable_type::real);
 }
 
-int cse_execution_connect_integer_variables(
-    cse_execution* execution,
-    cse_slave_index outputSlaveIndex,
-    cse_value_reference outputValueReference,
-    cse_slave_index inputSlaveIndex,
-    cse_value_reference inputValueReference)
+int cosim_execution_connect_integer_variables(
+    cosim_execution* execution,
+    cosim_slave_index outputSlaveIndex,
+    cosim_value_reference outputValueReference,
+    cosim_slave_index inputSlaveIndex,
+    cosim_value_reference inputValueReference)
 {
     return connect_variables(execution, outputSlaveIndex, outputValueReference, inputSlaveIndex, inputValueReference,
         cse::variable_type::integer);
 }
 
-int cse_observer_slave_get_real(
-    cse_observer* observer,
-    cse_slave_index slave,
-    const cse_value_reference variables[],
+int cosim_observer_slave_get_real(
+    cosim_observer* observer,
+    cosim_slave_index slave,
+    const cosim_value_reference variables[],
     size_t nv,
     double values[])
 {
@@ -719,10 +719,10 @@ int cse_observer_slave_get_real(
     }
 }
 
-int cse_observer_slave_get_integer(
-    cse_observer* observer,
-    cse_slave_index slave,
-    const cse_value_reference variables[],
+int cosim_observer_slave_get_integer(
+    cosim_observer* observer,
+    cosim_slave_index slave,
+    const cosim_value_reference variables[],
     size_t nv,
     int values[])
 {
@@ -739,10 +739,10 @@ int cse_observer_slave_get_integer(
     }
 }
 
-int cse_observer_slave_get_boolean(
-    cse_observer* observer,
-    cse_slave_index slave,
-    const cse_value_reference variables[],
+int cosim_observer_slave_get_boolean(
+    cosim_observer* observer,
+    cosim_slave_index slave,
+    const cosim_value_reference variables[],
     size_t nv,
     bool values[])
 {
@@ -760,13 +760,13 @@ int cse_observer_slave_get_boolean(
 }
 
 // This holds string variable values.
-// Must only be used with `cse_observer_slave_get_string()`.
+// Must only be used with `cosim_observer_slave_get_string()`.
 thread_local std::vector<std::string> g_stringVariableBuffer;
 
-int cse_observer_slave_get_string(
-    cse_observer* observer,
-    cse_slave_index slave,
-    const cse_value_reference variables[],
+int cosim_observer_slave_get_string(
+    cosim_observer* observer,
+    cosim_slave_index slave,
+    const cosim_value_reference variables[],
     size_t nv,
     const char* values[])
 {
@@ -788,15 +788,15 @@ int cse_observer_slave_get_string(
     }
 }
 
-int64_t cse_observer_slave_get_real_samples(
-    cse_observer* observer,
-    cse_slave_index slave,
-    cse_value_reference valueReference,
-    cse_step_number fromStep,
+int64_t cosim_observer_slave_get_real_samples(
+    cosim_observer* observer,
+    cosim_slave_index slave,
+    cosim_value_reference valueReference,
+    cosim_step_number fromStep,
     size_t nSamples,
     double values[],
-    cse_step_number steps[],
-    cse_time_point times[])
+    cosim_step_number steps[],
+    cosim_time_point times[])
 {
     try {
         std::vector<cse::time_point> timePoints(nSamples);
@@ -817,13 +817,13 @@ int64_t cse_observer_slave_get_real_samples(
     }
 }
 
-int64_t cse_observer_slave_get_real_synchronized_series(
-    cse_observer* observer,
-    cse_slave_index slave1,
-    cse_value_reference valueReference1,
-    cse_slave_index slave2,
-    cse_value_reference valueReference2,
-    cse_step_number fromStep,
+int64_t cosim_observer_slave_get_real_synchronized_series(
+    cosim_observer* observer,
+    cosim_slave_index slave1,
+    cosim_value_reference valueReference1,
+    cosim_slave_index slave2,
+    cosim_value_reference valueReference2,
+    cosim_step_number fromStep,
     size_t nSamples,
     double values1[],
     double values2[])
@@ -849,15 +849,15 @@ int64_t cse_observer_slave_get_real_synchronized_series(
     }
 }
 
-int64_t cse_observer_slave_get_integer_samples(
-    cse_observer* observer,
-    cse_slave_index slave,
-    cse_value_reference valueReference,
-    cse_step_number fromStep,
+int64_t cosim_observer_slave_get_integer_samples(
+    cosim_observer* observer,
+    cosim_slave_index slave,
+    cosim_value_reference valueReference,
+    cosim_step_number fromStep,
     size_t nSamples,
     int values[],
-    cse_step_number steps[],
-    cse_time_point times[])
+    cosim_step_number steps[],
+    cosim_time_point times[])
 {
     try {
         std::vector<cse::time_point> timePoints(nSamples);
@@ -878,11 +878,11 @@ int64_t cse_observer_slave_get_integer_samples(
     }
 }
 
-int cse_observer_get_step_numbers_for_duration(
-    cse_observer* observer,
-    cse_slave_index slave,
-    cse_duration duration,
-    cse_step_number steps[])
+int cosim_observer_get_step_numbers_for_duration(
+    cosim_observer* observer,
+    cosim_slave_index slave,
+    cosim_duration duration,
+    cosim_step_number steps[])
 {
     try {
         const auto obs = std::dynamic_pointer_cast<cse::time_series_provider>(observer->cpp_observer);
@@ -897,12 +897,12 @@ int cse_observer_get_step_numbers_for_duration(
     }
 }
 
-int cse_observer_get_step_numbers(
-    cse_observer* observer,
-    cse_slave_index slave,
-    cse_time_point begin,
-    cse_time_point end,
-    cse_step_number steps[])
+int cosim_observer_get_step_numbers(
+    cosim_observer* observer,
+    cosim_slave_index slave,
+    cosim_time_point begin,
+    cosim_time_point end,
+    cosim_step_number steps[])
 {
     try {
         const auto obs = std::dynamic_pointer_cast<cse::time_series_provider>(observer->cpp_observer);
@@ -918,61 +918,61 @@ int cse_observer_get_step_numbers(
     }
 }
 
-cse_observer* cse_last_value_observer_create()
+cosim_observer* cosim_last_value_observer_create()
 {
-    auto observer = std::make_unique<cse_observer>();
+    auto observer = std::make_unique<cosim_observer>();
     observer->cpp_observer = std::make_shared<cse::last_value_observer>();
     return observer.release();
 }
 
-cse_observer* cse_file_observer_create(const char* logDir)
+cosim_observer* cosim_file_observer_create(const char* logDir)
 {
-    auto observer = std::make_unique<cse_observer>();
+    auto observer = std::make_unique<cosim_observer>();
     auto logPath = boost::filesystem::path(logDir);
     observer->cpp_observer = std::make_shared<cse::file_observer>(logPath);
     return observer.release();
 }
 
-cse_observer* cse_file_observer_create_from_cfg(const char* logDir, const char* cfgPath)
+cosim_observer* cosim_file_observer_create_from_cfg(const char* logDir, const char* cfgPath)
 {
-    auto observer = std::make_unique<cse_observer>();
+    auto observer = std::make_unique<cosim_observer>();
     auto boostLogDir = boost::filesystem::path(logDir);
     auto boostCfgPath = boost::filesystem::path(cfgPath);
     observer->cpp_observer = std::make_shared<cse::file_observer>(boostLogDir, boostCfgPath);
     return observer.release();
 }
 
-cse_observer* cse_time_series_observer_create()
+cosim_observer* cosim_time_series_observer_create()
 {
-    auto observer = std::make_unique<cse_observer>();
+    auto observer = std::make_unique<cosim_observer>();
     observer->cpp_observer = std::make_shared<cse::time_series_observer>();
     return observer.release();
 }
 
-cse_observer* cse_buffered_time_series_observer_create(size_t bufferSize)
+cosim_observer* cosim_buffered_time_series_observer_create(size_t bufferSize)
 {
-    auto observer = std::make_unique<cse_observer>();
+    auto observer = std::make_unique<cosim_observer>();
     observer->cpp_observer = std::make_shared<cse::time_series_observer>(bufferSize);
     return observer.release();
 }
 
-cse::variable_type to_cpp_variable_type(cse_variable_type type)
+cse::variable_type to_cpp_variable_type(cosim_variable_type type)
 {
     switch (type) {
-        case CSE_VARIABLE_TYPE_REAL:
+        case COSIM_VARIABLE_TYPE_REAL:
             return cse::variable_type::real;
-        case CSE_VARIABLE_TYPE_INTEGER:
+        case COSIM_VARIABLE_TYPE_INTEGER:
             return cse::variable_type::integer;
-        case CSE_VARIABLE_TYPE_BOOLEAN:
+        case COSIM_VARIABLE_TYPE_BOOLEAN:
             return cse::variable_type::boolean;
-        case CSE_VARIABLE_TYPE_STRING:
+        case COSIM_VARIABLE_TYPE_STRING:
             return cse::variable_type::string;
         default:
             throw std::invalid_argument("Variable type not supported");
     }
 }
 
-int cse_observer_start_observing(cse_observer* observer, cse_slave_index slave, cse_variable_type type, cse_value_reference reference)
+int cosim_observer_start_observing(cosim_observer* observer, cosim_slave_index slave, cosim_variable_type type, cosim_value_reference reference)
 {
     try {
         const auto timeSeriesObserver = std::dynamic_pointer_cast<cse::time_series_observer>(observer->cpp_observer);
@@ -988,7 +988,7 @@ int cse_observer_start_observing(cse_observer* observer, cse_slave_index slave, 
     }
 }
 
-int cse_observer_stop_observing(cse_observer* observer, cse_slave_index slave, cse_variable_type type, cse_value_reference reference)
+int cosim_observer_stop_observing(cosim_observer* observer, cosim_slave_index slave, cosim_variable_type type, cosim_value_reference reference)
 {
     try {
         const auto timeSeriesObserver = std::dynamic_pointer_cast<cse::time_series_observer>(observer->cpp_observer);
@@ -1004,9 +1004,9 @@ int cse_observer_stop_observing(cse_observer* observer, cse_slave_index slave, c
     }
 }
 
-int cse_execution_add_observer(
-    cse_execution* execution,
-    cse_observer* observer)
+int cosim_execution_add_observer(
+    cosim_execution* execution,
+    cosim_observer* observer)
 {
     try {
         execution->cpp_execution->add_observer(observer->cpp_observer);
@@ -1017,23 +1017,23 @@ int cse_execution_add_observer(
     }
 }
 
-struct cse_manipulator_s
+struct cosim_manipulator_s
 {
     std::shared_ptr<cse::manipulator> cpp_manipulator;
 };
 
-cse_manipulator* cse_override_manipulator_create()
+cosim_manipulator* cosim_override_manipulator_create()
 {
-    auto manipulator = std::make_unique<cse_manipulator>();
+    auto manipulator = std::make_unique<cosim_manipulator>();
     manipulator->cpp_manipulator = std::make_shared<cse::override_manipulator>();
     return manipulator.release();
 }
 
-int cse_manipulator_destroy(cse_manipulator* manipulator)
+int cosim_manipulator_destroy(cosim_manipulator* manipulator)
 {
     try {
         if (!manipulator) return success;
-        const auto owned = std::unique_ptr<cse_manipulator>(manipulator);
+        const auto owned = std::unique_ptr<cosim_manipulator>(manipulator);
         return success;
     } catch (...) {
         handle_current_exception();
@@ -1041,9 +1041,9 @@ int cse_manipulator_destroy(cse_manipulator* manipulator)
     }
 }
 
-int cse_execution_add_manipulator(
-    cse_execution* execution,
-    cse_manipulator* manipulator)
+int cosim_execution_add_manipulator(
+    cosim_execution* execution,
+    cosim_manipulator* manipulator)
 {
     try {
         execution->cpp_execution->add_manipulator(manipulator->cpp_manipulator);
@@ -1054,10 +1054,10 @@ int cse_execution_add_manipulator(
     }
 }
 
-int cse_manipulator_slave_set_real(
-    cse_manipulator* manipulator,
-    cse_slave_index slaveIndex,
-    const cse_value_reference variables[],
+int cosim_manipulator_slave_set_real(
+    cosim_manipulator* manipulator,
+    cosim_slave_index slaveIndex,
+    const cosim_value_reference variables[],
     size_t nv,
     const double values[])
 {
@@ -1076,10 +1076,10 @@ int cse_manipulator_slave_set_real(
     }
 }
 
-int cse_manipulator_slave_set_integer(
-    cse_manipulator* manipulator,
-    cse_slave_index slaveIndex,
-    const cse_value_reference variables[],
+int cosim_manipulator_slave_set_integer(
+    cosim_manipulator* manipulator,
+    cosim_slave_index slaveIndex,
+    const cosim_value_reference variables[],
     size_t nv,
     const int values[])
 {
@@ -1098,10 +1098,10 @@ int cse_manipulator_slave_set_integer(
     }
 }
 
-int cse_manipulator_slave_set_boolean(
-    cse_manipulator* manipulator,
-    cse_slave_index slaveIndex,
-    const cse_value_reference variables[],
+int cosim_manipulator_slave_set_boolean(
+    cosim_manipulator* manipulator,
+    cosim_slave_index slaveIndex,
+    const cosim_value_reference variables[],
     size_t nv,
     const bool values[])
 {
@@ -1120,10 +1120,10 @@ int cse_manipulator_slave_set_boolean(
     }
 }
 
-int cse_manipulator_slave_set_string(
-    cse_manipulator* manipulator,
-    cse_slave_index slaveIndex,
-    const cse_value_reference variables[],
+int cosim_manipulator_slave_set_string(
+    cosim_manipulator* manipulator,
+    cosim_slave_index slaveIndex,
+    const cosim_value_reference variables[],
     size_t nv,
     const char* values[])
 {
@@ -1142,11 +1142,11 @@ int cse_manipulator_slave_set_string(
     }
 }
 
-int cse_manipulator_slave_reset(
-    cse_manipulator* manipulator,
-    cse_slave_index slaveIndex,
-    cse_variable_type type,
-    const cse_value_reference variables[],
+int cosim_manipulator_slave_reset(
+    cosim_manipulator* manipulator,
+    cosim_slave_index slaveIndex,
+    cosim_variable_type type,
+    const cosim_value_reference variables[],
     size_t nv)
 {
     try {
@@ -1165,16 +1165,16 @@ int cse_manipulator_slave_reset(
     }
 }
 
-cse_manipulator* cse_scenario_manager_create()
+cosim_manipulator* cosim_scenario_manager_create()
 {
-    auto manipulator = std::make_unique<cse_manipulator>();
+    auto manipulator = std::make_unique<cosim_manipulator>();
     manipulator->cpp_manipulator = std::make_shared<cse::scenario_manager>();
     return manipulator.release();
 }
 
-int cse_execution_load_scenario(
-    cse_execution* execution,
-    cse_manipulator* manipulator,
+int cosim_execution_load_scenario(
+    cosim_execution* execution,
+    cosim_manipulator* manipulator,
     const char* scenarioFile)
 {
     try {
@@ -1191,7 +1191,7 @@ int cse_execution_load_scenario(
     }
 }
 
-int cse_scenario_is_running(cse_manipulator* manipulator)
+int cosim_scenario_is_running(cosim_manipulator* manipulator)
 {
     try {
         const auto manager = std::dynamic_pointer_cast<cse::scenario_manager>(manipulator->cpp_manipulator);
@@ -1205,7 +1205,7 @@ int cse_scenario_is_running(cse_manipulator* manipulator)
     }
 }
 
-int cse_scenario_abort(cse_manipulator* manipulator)
+int cosim_scenario_abort(cosim_manipulator* manipulator)
 {
     try {
         const auto manager = std::dynamic_pointer_cast<cse::scenario_manager>(manipulator->cpp_manipulator);
@@ -1220,7 +1220,7 @@ int cse_scenario_abort(cse_manipulator* manipulator)
     }
 }
 
-int cse_get_modified_variables(cse_execution* execution, cse_variable_id ids[], size_t numVariables)
+int cosim_get_modified_variables(cosim_execution* execution, cosim_variable_id ids[], size_t numVariables)
 {
     try {
         auto modified_vars = execution->cpp_execution->get_modified_variables();
@@ -1236,15 +1236,15 @@ int cse_get_modified_variables(cse_execution* execution, cse_variable_id ids[], 
 
         return static_cast<int>(counter);
     } catch (...) {
-        execution->state = CSE_EXECUTION_ERROR;
-        execution->error_code = CSE_ERRC_UNSPECIFIED;
+        execution->state = COSIM_EXECUTION_ERROR;
+        execution->error_code = COSIM_ERRC_UNSPECIFIED;
         handle_current_exception();
         return failure;
     }
 }
 
 
-int cse_log_setup_simple_console_logging()
+int cosim_log_setup_simple_console_logging()
 {
     try {
         cse::log::setup_simple_console_logging();
@@ -1256,25 +1256,25 @@ int cse_log_setup_simple_console_logging()
 }
 
 
-void cse_log_set_output_level(cse_log_severity_level level)
+void cosim_log_set_output_level(cosim_log_severity_level level)
 {
     switch (level) {
-        case CSE_LOG_SEVERITY_TRACE:
+        case COSIM_LOG_SEVERITY_TRACE:
             cse::log::set_global_output_level(cse::log::trace);
             break;
-        case CSE_LOG_SEVERITY_DEBUG:
+        case COSIM_LOG_SEVERITY_DEBUG:
             cse::log::set_global_output_level(cse::log::debug);
             break;
-        case CSE_LOG_SEVERITY_INFO:
+        case COSIM_LOG_SEVERITY_INFO:
             cse::log::set_global_output_level(cse::log::info);
             break;
-        case CSE_LOG_SEVERITY_WARNING:
+        case COSIM_LOG_SEVERITY_WARNING:
             cse::log::set_global_output_level(cse::log::warning);
             break;
-        case CSE_LOG_SEVERITY_ERROR:
+        case COSIM_LOG_SEVERITY_ERROR:
             cse::log::set_global_output_level(cse::log::error);
             break;
-        case CSE_LOG_SEVERITY_FATAL:
+        case COSIM_LOG_SEVERITY_FATAL:
             cse::log::set_global_output_level(cse::log::fatal);
             break;
         default:
