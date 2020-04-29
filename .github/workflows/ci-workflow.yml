@@ -52,7 +52,7 @@ jobs:
           CONAN_NON_INTERACTIVE: True
         run: |
           conan create -s build_type=${{ matrix.build_type }} -s compiler.version=${{ matrix.compiler_version }} -s compiler.libcxx=libstdc++11 . osp/testing
-          conan upload --all -r osp 'libcosimc*'
+          conan upload --all -c -r osp 'libcosimc*'
       - name: Conan install Windows
         if: ${{ matrix.os == 'windows-latest' }}
         env:
@@ -62,4 +62,4 @@ jobs:
           CONAN_NON_INTERACTIVE: True
         run: |
           conan create -s build_type=${{ matrix.build_type }} -s compiler.version=${{ matrix.compiler_version }} . osp/testing
-          conan upload --all -r osp libcosimc*
+          conan upload --all -c -r osp libcosimc*
