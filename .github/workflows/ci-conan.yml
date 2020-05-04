@@ -1,0 +1,58 @@
+name: libcosimc CI
+
+# This workflow is triggered on pushes to the repository.
+on: [push]
+
+jobs:
+  build:
+    name: Build and upload Conan packages
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-18.04, windows-latest]
+        build_type: [Debug, Release]
+
+        include:
+          - os: windows_latest
+            compiler_version: 15
+          - os: ubuntu-18.04
+            compiler_version: 7
+            compiler_libcxx: libstdc++11
+
+    runs-on: ${{ matrix.os }}
+
+    env:
+      CONAN_LOGIN_USERNAME_OSP: ${{ secrets.osp_conan_usr }}
+      CONAN_PASSWORD_OSP: ${{ secrets.osp_conan_pwd }}
+      CONAN_REVISIONS_ENABLED: 1
+      CONAN_NON_INTERACTIVE: True
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.x
+        uses: actions/setup-python@v1
+        with:
+          python-version: '3.x'
+      - name: Install Conan
+        run: |
+          python -m pip install --upgrade pip
+          pip install conan
+      - name: Install doxygen on Linux
+        run: apt-get install -y doxygen
+        if: ${{ matrix.os == 'ubuntu-18.04' }}
+      - name: Install doxygen on Windows
+        run: choco install doxygen.install
+        if: ${{ matrix.os == 'windows-latest' }}
+      - name: Configure Conan
+        run: conan remote add osp https://osp-conan.azurewebsites.net/artifactory/api/conan/public --force
+      - name: Conan create
+        run: |
+          if [ "$LIBCXX" != "" ]; then
+            conan create -s build_type=${{ matrix.build_type }} -s compiler.version=${{ matrix.compiler_version }} -s compiler.libcxx=${{ matrix.libcxx }} . osp/testing
+          else
+            conan create -s build_type=${{ matrix.build_type }} -s compiler.version=${{ matrix.compiler_version }} . osp/testing
+          fi
+        env:
+          LIBCXX: ${{ matrix.compiler_libcxx }}
+      - name: Conan upload
+        run: conan upload --all -c -r osp 'libcosimc*'
