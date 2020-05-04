@@ -6,6 +6,11 @@ on: [push]
 jobs:
   build:
     name: Build and upload Conan packages
+
+    defaults:
+      run:
+        shell: bash
+
     strategy:
       fail-fast: false
       matrix:
