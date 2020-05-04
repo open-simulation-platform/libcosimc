@@ -53,7 +53,7 @@ jobs:
       - name: Conan create
         run: |
           if [ "$LIBCXX" != "" ]; then
-            conan create -s build_type=${{ matrix.build_type }} -s compiler.version=${{ matrix.compiler_version }} -s compiler.libcxx=${{ matrix.libcxx }} . osp/testing
+            conan create -s build_type=${{ matrix.build_type }} -s compiler.version=${{ matrix.compiler_version }} -s compiler.libcxx=${{ matrix.compiler_libcxx }} . osp/testing
           else
             conan create -s build_type=${{ matrix.build_type }} -s compiler.version=${{ matrix.compiler_version }} . osp/testing
           fi
