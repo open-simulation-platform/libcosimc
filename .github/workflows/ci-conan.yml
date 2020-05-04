@@ -38,7 +38,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install conan
       - name: Install doxygen on Linux
-        run: apt-get install -y doxygen
+        run: sudo apt-get install -y doxygen
         if: ${{ matrix.os == 'ubuntu-18.04' }}
       - name: Install doxygen on Windows
         run: choco install doxygen.install
