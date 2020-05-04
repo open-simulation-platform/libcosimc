@@ -14,22 +14,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-18.04, windows-2016, windows-2019]
+        os: [ubuntu-18.04, windows-2016]
         build_type: [Debug, Release]
 
         include:
           - os: windows-2016
             compiler_version: 15
-          - os: windows-2019
-            compiler_version: 16
           - os: ubuntu-18.04
             compiler_version: 7
-            compiler_libcxx: libstdc++11
-          - os: ubuntu-18.04
-            compiler_version: 8
-            compiler_libcxx: libstdc++11
-          - os: ubuntu-18.04
-            compiler_version: 9
             compiler_libcxx: libstdc++11
 
     runs-on: ${{ matrix.os }}
@@ -42,14 +34,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Set up Python 3.x
-        uses: actions/setup-python@v1
-        with:
-          python-version: '3.x'
       - name: Install Conan
         run: |
-          python -m pip install --upgrade pip
-          pip install conan
+          sudo pip3 install --upgrade setuptools pip
+          sudo pip3 install conan
       - name: Install doxygen on Linux
         run: sudo apt-get install -y doxygen
         if: runner.os == 'Linux'
