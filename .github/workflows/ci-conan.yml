@@ -1,4 +1,4 @@
-name: libcosimc CI
+name: libcosimc CI Conan
 
 # This workflow is triggered on pushes to the repository.
 on: [push]
