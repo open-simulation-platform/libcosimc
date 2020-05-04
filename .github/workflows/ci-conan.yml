@@ -44,10 +44,10 @@ jobs:
           pip install conan
       - name: Install doxygen on Linux
         run: sudo apt-get install -y doxygen
-        if: ${{ matrix.os == 'ubuntu-18.04' }}
+        if: runner.os == 'Linux'
       - name: Install doxygen on Windows
         run: choco install doxygen.install
-        if: ${{ matrix.os == 'windows-latest' }}
+        if: runner.os == 'Windows'
       - name: Configure Conan
         run: conan remote add osp https://osp-conan.azurewebsites.net/artifactory/api/conan/public --force
       - name: Conan create
