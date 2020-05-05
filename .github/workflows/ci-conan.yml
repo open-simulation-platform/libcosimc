@@ -20,6 +20,7 @@ jobs:
         build_type: [Debug, Release]
         compiler_version: [7]
         compiler_libcxx: [libstdc++11]
+        option_fmuproxy: [True False]
 
     steps:
       - uses: actions/checkout@v2
@@ -31,7 +32,7 @@ jobs:
       - name: Configure Conan
         run: conan remote add osp https://osp-conan.azurewebsites.net/artifactory/api/conan/public --force
       - name: Conan create
-        run: conan create -s build_type=${{ matrix.build_type }} -s compiler.version=${{ matrix.compiler_version }} -s compiler.libcxx=${{ matrix.compiler_libcxx }} . osp/testing
+        run: conan create -s build_type=${{ matrix.build_type }} -s compiler.version=${{ matrix.compiler_version }} -s compiler.libcxx=${{ matrix.compiler_libcxx }} -o cse-core:fmuproxy=${{ matrix.option_fmuproxy }} . osp/testing
       - name: Conan upload
         run: conan upload --all -c -r osp 'libcosimc*'
 
@@ -44,6 +45,7 @@ jobs:
         os: [windows-2016]
         build_type: [Debug, Release]
         compiler_version: [15]
+        option_fmuproxy: [True False]
 
     steps:
       - uses: actions/checkout@v2
@@ -55,6 +57,6 @@ jobs:
       - name: Configure Conan
         run: conan remote add osp https://osp-conan.azurewebsites.net/artifactory/api/conan/public --force
       - name: Conan create
-        run: conan create -s build_type=${{ matrix.build_type }} -s compiler.version=${{ matrix.compiler_version }} . osp/testing
+        run: conan create -s build_type=${{ matrix.build_type }} -s compiler.version=${{ matrix.compiler_version }} -o cse-core:fmuproxy=${{ matrix.option_fmuproxy }} . osp/testing
       - name: Conan upload
         run: conan upload --all -c -r osp 'libcosimc*'
