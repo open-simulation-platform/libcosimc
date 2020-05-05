@@ -20,7 +20,7 @@ jobs:
         build_type: [Debug, Release]
         compiler_version: [7]
         compiler_libcxx: [libstdc++11]
-        option_fmuproxy: [True, False]
+        option_fmuproxy: ['True', 'False']
 
     steps:
       - uses: actions/checkout@v2
@@ -45,7 +45,7 @@ jobs:
         os: [windows-2016]
         build_type: [Debug, Release]
         compiler_version: [15]
-        option_fmuproxy: [True, False]
+        option_fmuproxy: ['True', 'False']
 
     steps:
       - uses: actions/checkout@v2
