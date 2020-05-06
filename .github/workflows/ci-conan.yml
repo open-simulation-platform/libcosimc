@@ -32,11 +32,11 @@ jobs:
       - name: Configure Conan
         run: conan remote add osp https://osp-conan.azurewebsites.net/artifactory/api/conan/public --force
       - name: Conan create
-        run: conan create -s build_type=${{ matrix.build_type }} -s compiler.version=${{ matrix.compiler_version }} -s compiler.libcxx=${{ matrix.compiler_libcxx }} -o cse-core:fmuproxy=${{ matrix.option_fmuproxy }} --build libevent . osp/testing
+        run: conan create -s build_type=${{ matrix.build_type }} -s compiler.version=${{ matrix.compiler_version }} -s compiler.libcxx=${{ matrix.compiler_libcxx }} -o cse-core:fmuproxy=${{ matrix.option_fmuproxy }} --build thrift . osp/testing
       - name: Conan upload
         run: |
           conan upload --all -c -r osp 'libcosimc*'
-          conan upload --all -c -r osp 'libevent*'
+          conan upload --all -c -r osp 'thrift*'
 
   conan-on-windows:
     name: Conan
