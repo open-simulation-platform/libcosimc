@@ -16,8 +16,6 @@ option(LIBCOSIMC_BUILD_PRIVATE_APIDOC "Build private API documentation" OFF)
 option(LIBCOSIMC_STANDALONE_INSTALLATION "Whether to build for a standalone installation (Linux only; sets a relative RPATH)" OFF)
 option(LIBCOSIMC_USING_CONAN "Whether Conan is used for package management" OFF)
 option(CSECORE_WITH_FMUPROXY "Whether or not to build with fmuproxy integration" OFF)
-#option(CSECORE_TEST_FMUPROXY "Whether or not to run fmuproxy tests (only if CSECORE_WITH_FMUPROXY=ON)" ON)
-
 
 # ==============================================================================
 # Global internal configuration
@@ -121,7 +119,7 @@ find_package(csecore REQUIRED)
 # Targets
 # ==============================================================================
 
-add_library(cosimc include/cosim.h src/cosim.cpp)
+add_library(cosimc "include/cosim.h" "src/cosim.cpp")
 
 target_compile_features(cosimc PRIVATE "cxx_std_17")
 target_include_directories(cosimc PUBLIC "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>")
@@ -139,7 +137,6 @@ install(
         ${LIBCOSIMC_INSTALL_DESTINATIONS}
 )
 install(DIRECTORY "include/" DESTINATION "${LIBCOSIMC_HEADER_INSTALL_DIR}")
-
 
 # ==============================================================================
 # API documentation
@@ -183,6 +180,7 @@ endif()
 # ==============================================================================
 # Tests
 # ==============================================================================
+
 if(LIBCOSIMC_BUILD_TESTS)
     enable_testing()
 
@@ -203,18 +201,16 @@ if(LIBCOSIMC_BUILD_TESTS)
             "variable_metadata_test"
             )
 
-    include("AddTestExecutable")
-    foreach(test IN LISTS tests)
-        add_test_executable(
-                "${test}"
-                FOLDER "C tests"
-                SOURCES "tests/${test}.c"
-                DEPENDENCIES cosimc
-                DATA_DIR "${CMAKE_CURRENT_SOURCE_DIR}/tests/data"
+    foreach(testName IN LISTS tests)
+        add_executable("${testName}" "tests/${testName}.c")
+        target_link_libraries("${testName}" PRIVATE cosimc)
+        add_test(NAME "${testName}" COMMAND "${testName}")
+        set_property(
+            TEST "${testName}"
+            PROPERTY ENVIRONMENT "TEST_DATA_DIR=${CMAKE_SOURCE_DIR}/tests/data"
         )
     endforeach()
 endif()
-
 
 # ==============================================================================
 # Exports and remaining installation
@@ -250,14 +246,3 @@ write_basic_package_version_file(
     VERSION "${PROJECT_VERSION}"
     COMPATIBILITY "SameMajorVersion")
 install(FILES "${versionFile}" DESTINATION "${LIBCOSIMC_CMAKE_INSTALL_DIR}")
-
-# Install custom find modules
-install(FILES
-        "${CMAKE_SOURCE_DIR}/cmake/FindFMILibrary.cmake"
-        "${CMAKE_SOURCE_DIR}/cmake/FindLIBZIP.cmake"
-        "${CMAKE_SOURCE_DIR}/cmake/FindMS_GSL.cmake"
-        "${CMAKE_SOURCE_DIR}/cmake/FindTHRIFT.cmake"
-        "${CMAKE_SOURCE_DIR}/cmake/FindYAML_CPP.cmake"
-        DESTINATION
-        "${LIBCOSIMC_CMAKE_INSTALL_DIR}"
-)
