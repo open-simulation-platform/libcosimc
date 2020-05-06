@@ -22,6 +22,11 @@ jobs:
         compiler_libcxx: [libstdc++11]
         option_fmuproxy: ['True', 'False']
 
+        exclude:
+        - os: ubuntu-18.04
+          build_type: Debug
+          option_fmuproxy: 'True'
+
     steps:
       - uses: actions/checkout@v2
       - name: Install prerequisites
@@ -36,8 +41,6 @@ jobs:
       - name: Conan upload
         run: |
           conan upload --all -c -r osp 'libcosimc*'
-          conan upload --all -c -r osp 'libevent*'
-          conan upload --all -c -r osp 'thrift*'
 
   conan-on-windows:
     name: Conan
