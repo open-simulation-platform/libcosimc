@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.13)
 file(STRINGS "${CMAKE_SOURCE_DIR}/version.txt" projectVersion)
-project("libcosimc" VERSION ${projectVersion})
+project("libcosimc"
+    VERSION "${projectVersion}"
+    DESCRIPTION "C wrapper for the libcosim C++ library"
+)
 
 # ==============================================================================
 # Build settings
@@ -145,8 +148,6 @@ install(DIRECTORY "include/" DESTINATION "${LIBCOSIMC_HEADER_INSTALL_DIR}")
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
     message("Found Doxygen, API documentation will be built.")
-    set(DOXYGEN_PROJECT_NAME "libcosimc")
-    set(DOXYGEN_PROJECT_BRIEF "C library for distributed co-simulation")
     set(DOXYGEN_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/output/doc")
     set(DOXYGEN_GENERATE_LATEX "NO")
     set(DOXYGEN_RECURSIVE "YES")
