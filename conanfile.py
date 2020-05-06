@@ -16,7 +16,7 @@ class LibCosimCConan(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
     generators = "cmake", "virtualrunenv"
     requires = (
-        "cse-core/0.6.0@osp/v0.6.0"
+        "cse-core/0.7.0@osp/feature_300-split-c-cpp"
         )
 
     default_options = (
