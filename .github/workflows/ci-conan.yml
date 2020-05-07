@@ -20,12 +20,12 @@ jobs:
         build_type: [Debug, Release]
         compiler_version: [7]
         compiler_libcxx: [libstdc++11]
-        option_fmuproxy: ['True', 'False']
+        option_fmuproxy: ['fmuproxy=True', 'fmuproxy=False']
 
         exclude:
         - os: ubuntu-18.04
           build_type: Debug
-          option_fmuproxy: 'True'
+          option_fmuproxy: 'fmuproxy=True'
 
     steps:
       - uses: actions/checkout@v2
@@ -41,7 +41,7 @@ jobs:
           BRANCH=${GITHUB_REF#refs/heads/}
           SHORT_BRANCH=${BRANCH:0:50}
           CHANNEL=${SHORT_BRANCH//\//_}
-          conan create -s build_type=${{ matrix.build_type }} -s compiler.version=${{ matrix.compiler_version }} -s compiler.libcxx=${{ matrix.compiler_libcxx }} -o cse-core:fmuproxy=${{ matrix.option_fmuproxy }} --build missing . osp/${CHANNEL}
+          conan create -s build_type=${{ matrix.build_type }} -s compiler.version=${{ matrix.compiler_version }} -s compiler.libcxx=${{ matrix.compiler_libcxx }} -o cse-core:${{ matrix.option_fmuproxy }} --build missing . osp/${CHANNEL}
       - name: Conan upload
         run: |
           conan upload --all -c -r osp 'libcosimc*'
@@ -55,7 +55,7 @@ jobs:
         os: [windows-2016]
         build_type: [Debug, Release]
         compiler_version: [15]
-        option_fmuproxy: ['True', 'False']
+        option_fmuproxy: ['fmuproxy=True', 'fmuproxy=False']
 
         exclude:
           - os: windows-2016
@@ -77,6 +77,6 @@ jobs:
           BRANCH=${GITHUB_REF#refs/heads/}
           SHORT_BRANCH=${BRANCH:0:50}
           CHANNEL=${SHORT_BRANCH//\//_}
-          conan create -s build_type=${{ matrix.build_type }} -s compiler.version=${{ matrix.compiler_version }} -o cse-core:fmuproxy=${{ matrix.option_fmuproxy }} . osp/${CHANNEL}
+          conan create -s build_type=${{ matrix.build_type }} -s compiler.version=${{ matrix.compiler_version }} -o libcosim:${{ matrix.option_fmuproxy }} . osp/${CHANNEL}
       - name: Conan upload
         run: conan upload --all -c -r osp 'libcosimc*'
