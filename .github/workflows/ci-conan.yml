@@ -60,7 +60,7 @@ jobs:
         exclude:
           - os: windows-2016
             build_type: Debug
-            option_fmuproxy: 'True'
+            option_fmuproxy: 'fmuproxy=True'
 
     steps:
       - uses: actions/checkout@v2
