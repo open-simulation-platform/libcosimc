@@ -112,7 +112,7 @@ if(LIBCOSIMC_USING_CONAN)
     endif()
 endif()
 
-find_package(csecore REQUIRED)
+find_package(libcosim REQUIRED)
 
 # ==============================================================================
 # Targets
@@ -122,7 +122,7 @@ add_library(cosimc include/cosim.h src/cosim.cpp)
 
 target_compile_features(cosimc PRIVATE "cxx_std_17")
 target_include_directories(cosimc PUBLIC "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>")
-target_link_libraries(cosimc PUBLIC csecore::csecorecpp)
+target_link_libraries(cosimc PUBLIC libcosim::cosim)
 if(WIN32 AND NOT BUILD_SHARED_LIBS)
     set_target_properties(cosimc PROPERTIES OUTPUT_NAME "libcosimc")
 endif()
