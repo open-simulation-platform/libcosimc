@@ -3,18 +3,18 @@
 #endif
 
 #include <cosim.h>
-#include <cse/algorithm.hpp>
-#include <cse/cse_config_parser.hpp>
-#include <cse/exception.hpp>
-#include <cse/execution.hpp>
-#include <cse/fmi/fmu.hpp>
-#include <cse/fmi/importer.hpp>
-#include <cse/log/simple.hpp>
-#include <cse/manipulator.hpp>
-#include <cse/model.hpp>
-#include <cse/observer.hpp>
-#include <cse/orchestration.hpp>
-#include <cse/ssp/ssp_loader.hpp>
+#include <cosim/algorithm.hpp>
+#include <cosim/cse_config_parser.hpp>
+#include <cosim/exception.hpp>
+#include <cosim/execution.hpp>
+#include <cosim/fmi/fmu.hpp>
+#include <cosim/fmi/importer.hpp>
+#include <cosim/log/simple.hpp>
+#include <cosim/manipulator.hpp>
+#include <cosim/model.hpp>
+#include <cosim/observer.hpp>
+#include <cosim/orchestration.hpp>
+#include <cosim/ssp/ssp_loader.hpp>
 
 #include <boost/fiber/future.hpp>
 
