@@ -1,4 +1,4 @@
+include(CMakeFindDependencyMacro)
+find_dependency(libcosim REQUIRED)
 @PACKAGE_INIT@
 include ("@PACKAGE_targetsFile@")
-include(CMakeFindDependencyMacro)
-find_dependency(csecore REQUIRED)

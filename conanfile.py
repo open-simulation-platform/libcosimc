@@ -16,11 +16,7 @@ class LibCosimCConan(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
     generators = "cmake", "virtualrunenv"
     requires = (
-        "cse-core/0.6.0@osp/v0.6.0"
-        )
-
-    default_options = (
-        "cse-core:fmuproxy=False"
+        "libcosim/0.7.0@osp/master"
         )
 
     def set_version(self):
@@ -34,11 +30,6 @@ class LibCosimCConan(ConanFile):
     def configure_cmake(self):
         cmake = CMake(self)
         cmake.definitions["LIBCOSIMC_USING_CONAN"] = "ON"
-        if self.settings.build_type == "Debug":
-            cmake.definitions["LIBCOSIMC_BUILD_PRIVATE_APIDOC"] = "ON"
-        if self.options["cse-core"].fmuproxy:
-            cmake.definitions["LIBCOSIMC_WITH_FMUPROXY"] = "ON"
-            #cmake.definitions["LIBCOSIMC_TEST_FMUPROXY"] = "OFF" # since we can't test on Jenkins yet
         cmake.configure()
         return cmake
 

@@ -7,18 +7,18 @@
 #endif
 
 #include <cosim.h>
-#include <cse/algorithm.hpp>
-#include <cse/cse_config_parser.hpp>
-#include <cse/exception.hpp>
-#include <cse/execution.hpp>
-#include <cse/fmi/fmu.hpp>
-#include <cse/fmi/importer.hpp>
-#include <cse/log/simple.hpp>
-#include <cse/manipulator.hpp>
-#include <cse/model.hpp>
-#include <cse/observer.hpp>
-#include <cse/orchestration.hpp>
-#include <cse/ssp/ssp_loader.hpp>
+#include <cosim/algorithm.hpp>
+#include <cosim/exception.hpp>
+#include <cosim/execution.hpp>
+#include <cosim/fmi/fmu.hpp>
+#include <cosim/fmi/importer.hpp>
+#include <cosim/log/simple.hpp>
+#include <cosim/manipulator.hpp>
+#include <cosim/model.hpp>
+#include <cosim/observer.hpp>
+#include <cosim/orchestration.hpp>
+#include <cosim/osp_config_parser.hpp>
+#include <cosim/ssp/ssp_loader.hpp>
 
 #include <boost/fiber/future.hpp>
 
@@ -43,17 +43,17 @@ constexpr int failure = -1;
 
 cosim_errc cpp_to_c_error_code(std::error_code ec)
 {
-    if (ec == cse::errc::bad_file)
+    if (ec == cosim::errc::bad_file)
         return COSIM_ERRC_BAD_FILE;
-    else if (ec == cse::errc::unsupported_feature)
+    else if (ec == cosim::errc::unsupported_feature)
         return COSIM_ERRC_UNSUPPORTED_FEATURE;
-    else if (ec == cse::errc::dl_load_error)
+    else if (ec == cosim::errc::dl_load_error)
         return COSIM_ERRC_DL_LOAD_ERROR;
-    else if (ec == cse::errc::model_error)
+    else if (ec == cosim::errc::model_error)
         return COSIM_ERRC_MODEL_ERROR;
-    else if (ec == cse::errc::simulation_error)
+    else if (ec == cosim::errc::simulation_error)
         return COSIM_ERRC_SIMULATION_ERROR;
-    else if (ec == cse::errc::zip_error)
+    else if (ec == cosim::errc::zip_error)
         return COSIM_ERRC_ZIP_ERROR;
     else if (ec.category() == std::generic_category()) {
         errno = ec.value();
@@ -92,7 +92,7 @@ void handle_current_exception()
 {
     try {
         throw;
-    } catch (const cse::error& e) {
+    } catch (const cosim::error& e) {
         set_last_error(e.code(), e.what());
     } catch (const std::system_error& e) {
         set_last_error(e.code(), e.what());
@@ -109,19 +109,19 @@ void handle_current_exception()
     }
 }
 
-constexpr cosim_time_point to_integer_time_point(cse::time_point t)
+constexpr cosim_time_point to_integer_time_point(cosim::time_point t)
 {
     return t.time_since_epoch().count();
 }
 
-constexpr cse::duration to_duration(cosim_duration nanos)
+constexpr cosim::duration to_duration(cosim_duration nanos)
 {
-    return std::chrono::duration<cse::detail::clock::rep, cse::detail::clock::period>(nanos);
+    return std::chrono::duration<cosim::detail::clock::rep, cosim::detail::clock::period>(nanos);
 }
 
-constexpr cse::time_point to_time_point(cosim_time_point nanos)
+constexpr cosim::time_point to_time_point(cosim_time_point nanos)
 {
-    return cse::time_point(to_duration(nanos));
+    return cosim::time_point(to_duration(nanos));
 }
 
 // A wrapper for `std::strncpy()` which ensures that `dest` is always
@@ -147,8 +147,8 @@ const char* cosim_last_error_message()
 
 struct cosim_execution_s
 {
-    std::unique_ptr<cse::execution> cpp_execution;
-    cse::entity_index_maps entity_maps;
+    std::unique_ptr<cosim::execution> cpp_execution;
+    cosim::entity_index_maps entity_maps;
     std::thread t;
     boost::fibers::future<bool> simulate_result;
     std::exception_ptr simulate_exception_ptr;
@@ -163,9 +163,9 @@ cosim_execution* cosim_execution_create(cosim_time_point startTime, cosim_durati
         // are strictly unnecessary, but this will change soon enough.
         auto execution = std::make_unique<cosim_execution>();
 
-        execution->cpp_execution = std::make_unique<cse::execution>(
+        execution->cpp_execution = std::make_unique<cosim::execution>(
             to_time_point(startTime),
-            std::make_unique<cse::fixed_step_algorithm>(to_duration(stepSize)));
+            std::make_unique<cosim::fixed_step_algorithm>(to_duration(stepSize)));
         execution->error_code = COSIM_ERRC_SUCCESS;
         execution->state = COSIM_EXECUTION_STOPPED;
 
@@ -184,13 +184,13 @@ cosim_execution* cosim_osp_config_execution_create(
     try {
         auto execution = std::make_unique<cosim_execution>();
 
-        auto resolver = cse::default_model_uri_resolver();
-        const auto config = cse::load_cse_config(configPath, *resolver);
+        auto resolver = cosim::default_model_uri_resolver();
+        const auto config = cosim::load_osp_config(configPath, *resolver);
 
-        execution->cpp_execution = std::make_unique<cse::execution>(
+        execution->cpp_execution = std::make_unique<cosim::execution>(
             startTimeDefined ? to_time_point(startTime) : config.start_time,
-            std::make_shared<cse::fixed_step_algorithm>(config.step_size));
-        execution->entity_maps = cse::inject_system_structure(
+            std::make_shared<cosim::fixed_step_algorithm>(config.step_size));
+        execution->entity_maps = cosim::inject_system_structure(
             *execution->cpp_execution,
             config.system_structure,
             config.initial_values);
@@ -211,13 +211,13 @@ cosim_execution* cosim_ssp_execution_create(
     try {
         auto execution = std::make_unique<cosim_execution>();
 
-        cse::ssp_loader loader;
+        cosim::ssp_loader loader;
         const auto config = loader.load(sspDir);
 
-        execution->cpp_execution = std::make_unique<cse::execution>(
+        execution->cpp_execution = std::make_unique<cosim::execution>(
             startTimeDefined ? to_time_point(startTime) : config.start_time,
             config.algorithm);
-        execution->entity_maps = cse::inject_system_structure(
+        execution->entity_maps = cosim::inject_system_structure(
             *execution->cpp_execution,
             config.system_structure,
             config.parameter_sets.at(""));
@@ -238,13 +238,13 @@ cosim_execution* cosim_ssp_fixed_step_execution_create(
     try {
         auto execution = std::make_unique<cosim_execution>();
 
-        cse::ssp_loader loader;
+        cosim::ssp_loader loader;
         const auto config = loader.load(sspDir);
 
-        execution->cpp_execution = std::make_unique<cse::execution>(
+        execution->cpp_execution = std::make_unique<cosim::execution>(
             startTimeDefined ? to_time_point(startTime) : config.start_time,
-            std::make_unique<cse::fixed_step_algorithm>(to_duration(stepSize)));
-        execution->entity_maps = cse::inject_system_structure(
+            std::make_unique<cosim::fixed_step_algorithm>(to_duration(stepSize)));
+        execution->entity_maps = cosim::inject_system_structure(
             *execution->cpp_execution,
             config.system_structure,
             config.parameter_sets.at(""));
@@ -317,59 +317,59 @@ int cosim_get_num_modified_variables(cosim_execution* execution)
     return static_cast<int>(execution->cpp_execution->get_modified_variables().size());
 }
 
-cosim_variable_variability to_variable_variability(const cse::variable_variability& vv)
+cosim_variable_variability to_variable_variability(const cosim::variable_variability& vv)
 {
     switch (vv) {
-        case cse::variable_variability::constant:
+        case cosim::variable_variability::constant:
             return COSIM_VARIABLE_VARIABILITY_CONSTANT;
-        case cse::variable_variability::continuous:
+        case cosim::variable_variability::continuous:
             return COSIM_VARIABLE_VARIABILITY_CONTINUOUS;
-        case cse::variable_variability::discrete:
+        case cosim::variable_variability::discrete:
             return COSIM_VARIABLE_VARIABILITY_DISCRETE;
-        case cse::variable_variability::fixed:
+        case cosim::variable_variability::fixed:
             return COSIM_VARIABLE_VARIABILITY_FIXED;
-        case cse::variable_variability::tunable:
+        case cosim::variable_variability::tunable:
             return COSIM_VARIABLE_VARIABILITY_TUNABLE;
         default:
             throw std::invalid_argument("Invalid variable variability!");
     }
 }
 
-cosim_variable_causality to_variable_causality(const cse::variable_causality& vc)
+cosim_variable_causality to_variable_causality(const cosim::variable_causality& vc)
 {
     switch (vc) {
-        case cse::variable_causality::input:
+        case cosim::variable_causality::input:
             return COSIM_VARIABLE_CAUSALITY_INPUT;
-        case cse::variable_causality::output:
+        case cosim::variable_causality::output:
             return COSIM_VARIABLE_CAUSALITY_OUTPUT;
-        case cse::variable_causality::parameter:
+        case cosim::variable_causality::parameter:
             return COSIM_VARIABLE_CAUSALITY_PARAMETER;
-        case cse::variable_causality::calculated_parameter:
+        case cosim::variable_causality::calculated_parameter:
             return COSIM_VARIABLE_CAUSALITY_CALCULATEDPARAMETER;
-        case cse::variable_causality::local:
+        case cosim::variable_causality::local:
             return COSIM_VARIABLE_CAUSALITY_LOCAL;
         default:
             throw std::invalid_argument("Invalid variable causality!");
     }
 }
 
-cosim_variable_type to_c_variable_type(const cse::variable_type& vt)
+cosim_variable_type to_c_variable_type(const cosim::variable_type& vt)
 {
     switch (vt) {
-        case cse::variable_type::real:
+        case cosim::variable_type::real:
             return COSIM_VARIABLE_TYPE_REAL;
-        case cse::variable_type::integer:
+        case cosim::variable_type::integer:
             return COSIM_VARIABLE_TYPE_INTEGER;
-        case cse::variable_type::boolean:
+        case cosim::variable_type::boolean:
             return COSIM_VARIABLE_TYPE_BOOLEAN;
-        case cse::variable_type::string:
+        case cosim::variable_type::string:
             return COSIM_VARIABLE_TYPE_STRING;
         default:
             throw std::invalid_argument("Invalid variable type!");
     }
 }
 
-void translate_variable_description(const cse::variable_description& vd, cosim_variable_description& cvd)
+void translate_variable_description(const cosim::variable_description& vd, cosim_variable_description& cvd)
 {
     safe_strncpy(cvd.name, vd.name.c_str(), SLAVE_NAME_MAX_SIZE);
     cvd.reference = vd.reference;
@@ -402,13 +402,13 @@ struct cosim_slave_s
     std::string address;
     std::string modelName;
     std::string instanceName;
-    std::shared_ptr<cse::slave> instance;
+    std::shared_ptr<cosim::slave> instance;
 };
 
 cosim_slave* cosim_local_slave_create(const char* fmuPath, const char* instanceName)
 {
     try {
-        const auto importer = cse::fmi::importer::create();
+        const auto importer = cosim::fmi::importer::create();
         const auto fmu = importer->import(fmuPath);
         auto slave = std::make_unique<cosim_slave>();
         slave->modelName = fmu->model_description()->name;
@@ -484,7 +484,7 @@ cosim_slave_index cosim_execution_add_slave(
     cosim_slave* slave)
 {
     try {
-        auto index = execution->cpp_execution->add_slave(cse::make_background_thread_slave(slave->instance), slave->instanceName);
+        auto index = execution->cpp_execution->add_slave(cosim::make_background_thread_slave(slave->instance), slave->instanceName);
         execution->entity_maps.simulators[slave->instanceName] = index;
         return index;
     } catch (...) {
@@ -647,7 +647,7 @@ int cosim_execution_set_real_time_factor_target(cosim_execution* execution, doub
 
 struct cosim_observer_s
 {
-    std::shared_ptr<cse::observer> cpp_observer;
+    std::shared_ptr<cosim::observer> cpp_observer;
 };
 
 int cosim_observer_destroy(cosim_observer* observer)
@@ -664,15 +664,15 @@ int cosim_observer_destroy(cosim_observer* observer)
 
 int connect_variables(
     cosim_execution* execution,
-    cse::simulator_index outputSimulator,
-    cse::value_reference outputVariable,
-    cse::simulator_index inputSimulator,
-    cse::value_reference inputVariable,
-    cse::variable_type type)
+    cosim::simulator_index outputSimulator,
+    cosim::value_reference outputVariable,
+    cosim::simulator_index inputSimulator,
+    cosim::value_reference inputVariable,
+    cosim::variable_type type)
 {
     try {
-        const auto outputId = cse::variable_id{outputSimulator, type, outputVariable};
-        const auto inputId = cse::variable_id{inputSimulator, type, inputVariable};
+        const auto outputId = cosim::variable_id{outputSimulator, type, outputVariable};
+        const auto inputId = cosim::variable_id{inputSimulator, type, inputVariable};
         execution->cpp_execution->connect_variables(outputId, inputId);
         return success;
     } catch (...) {
@@ -689,7 +689,7 @@ int cosim_execution_connect_real_variables(
     cosim_value_reference inputValueReference)
 {
     return connect_variables(execution, outputSlaveIndex, outputValueReference, inputSlaveIndex, inputValueReference,
-        cse::variable_type::real);
+        cosim::variable_type::real);
 }
 
 int cosim_execution_connect_integer_variables(
@@ -700,7 +700,7 @@ int cosim_execution_connect_integer_variables(
     cosim_value_reference inputValueReference)
 {
     return connect_variables(execution, outputSlaveIndex, outputValueReference, inputSlaveIndex, inputValueReference,
-        cse::variable_type::integer);
+        cosim::variable_type::integer);
 }
 
 int cosim_observer_slave_get_real(
@@ -711,7 +711,7 @@ int cosim_observer_slave_get_real(
     double values[])
 {
     try {
-        const auto obs = std::dynamic_pointer_cast<cse::last_value_provider>(observer->cpp_observer);
+        const auto obs = std::dynamic_pointer_cast<cosim::last_value_provider>(observer->cpp_observer);
         if (!obs) {
             throw std::invalid_argument("Invalid observer! The provided observer must be a last_value_observer.");
         }
@@ -731,7 +731,7 @@ int cosim_observer_slave_get_integer(
     int values[])
 {
     try {
-        const auto obs = std::dynamic_pointer_cast<cse::last_value_provider>(observer->cpp_observer);
+        const auto obs = std::dynamic_pointer_cast<cosim::last_value_provider>(observer->cpp_observer);
         if (!obs) {
             throw std::invalid_argument("Invalid observer! The provided observer must be a last_value_observer.");
         }
@@ -751,7 +751,7 @@ int cosim_observer_slave_get_boolean(
     bool values[])
 {
     try {
-        const auto obs = std::dynamic_pointer_cast<cse::last_value_provider>(observer->cpp_observer);
+        const auto obs = std::dynamic_pointer_cast<cosim::last_value_provider>(observer->cpp_observer);
         if (!obs) {
             throw std::invalid_argument("Invalid observer! The provided observer must be a last_value_observer.");
         }
@@ -775,7 +775,7 @@ int cosim_observer_slave_get_string(
     const char* values[])
 {
     try {
-        const auto obs = std::dynamic_pointer_cast<cse::last_value_provider>(observer->cpp_observer);
+        const auto obs = std::dynamic_pointer_cast<cosim::last_value_provider>(observer->cpp_observer);
         if (!obs) {
             throw std::invalid_argument("Invalid observer! The provided observer must be a last_value_observer.");
         }
@@ -803,8 +803,8 @@ int64_t cosim_observer_slave_get_real_samples(
     cosim_time_point times[])
 {
     try {
-        std::vector<cse::time_point> timePoints(nSamples);
-        const auto obs = std::dynamic_pointer_cast<cse::time_series_provider>(observer->cpp_observer);
+        std::vector<cosim::time_point> timePoints(nSamples);
+        const auto obs = std::dynamic_pointer_cast<cosim::time_series_provider>(observer->cpp_observer);
         if (!obs) {
             throw std::invalid_argument("Invalid observer! The provided observer must be a time_series_observer.");
         }
@@ -833,8 +833,8 @@ int64_t cosim_observer_slave_get_real_synchronized_series(
     double values2[])
 {
     try {
-        std::vector<cse::time_point> timePoints(nSamples);
-        const auto obs = std::dynamic_pointer_cast<cse::time_series_provider>(observer->cpp_observer);
+        std::vector<cosim::time_point> timePoints(nSamples);
+        const auto obs = std::dynamic_pointer_cast<cosim::time_series_provider>(observer->cpp_observer);
         if (!obs) {
             throw std::invalid_argument("Invalid observer! The provided observer must be a time_series_observer.");
         }
@@ -864,8 +864,8 @@ int64_t cosim_observer_slave_get_integer_samples(
     cosim_time_point times[])
 {
     try {
-        std::vector<cse::time_point> timePoints(nSamples);
-        const auto obs = std::dynamic_pointer_cast<cse::time_series_provider>(observer->cpp_observer);
+        std::vector<cosim::time_point> timePoints(nSamples);
+        const auto obs = std::dynamic_pointer_cast<cosim::time_series_provider>(observer->cpp_observer);
         if (!obs) {
             throw std::invalid_argument("Invalid observer! The provided observer must be a time_series_observer.");
         }
@@ -889,7 +889,7 @@ int cosim_observer_get_step_numbers_for_duration(
     cosim_step_number steps[])
 {
     try {
-        const auto obs = std::dynamic_pointer_cast<cse::time_series_provider>(observer->cpp_observer);
+        const auto obs = std::dynamic_pointer_cast<cosim::time_series_provider>(observer->cpp_observer);
         if (!obs) {
             throw std::invalid_argument("Invalid observer! The provided observer must be a time_series_observer.");
         }
@@ -909,7 +909,7 @@ int cosim_observer_get_step_numbers(
     cosim_step_number steps[])
 {
     try {
-        const auto obs = std::dynamic_pointer_cast<cse::time_series_provider>(observer->cpp_observer);
+        const auto obs = std::dynamic_pointer_cast<cosim::time_series_provider>(observer->cpp_observer);
         if (!obs) {
             throw std::invalid_argument("Invalid observer! The provided observer must be a time_series_observer.");
         }
@@ -925,7 +925,7 @@ int cosim_observer_get_step_numbers(
 cosim_observer* cosim_last_value_observer_create()
 {
     auto observer = std::make_unique<cosim_observer>();
-    observer->cpp_observer = std::make_shared<cse::last_value_observer>();
+    observer->cpp_observer = std::make_shared<cosim::last_value_observer>();
     return observer.release();
 }
 
@@ -933,7 +933,7 @@ cosim_observer* cosim_file_observer_create(const char* logDir)
 {
     auto observer = std::make_unique<cosim_observer>();
     auto logPath = boost::filesystem::path(logDir);
-    observer->cpp_observer = std::make_shared<cse::file_observer>(logPath);
+    observer->cpp_observer = std::make_shared<cosim::file_observer>(logPath);
     return observer.release();
 }
 
@@ -942,35 +942,35 @@ cosim_observer* cosim_file_observer_create_from_cfg(const char* logDir, const ch
     auto observer = std::make_unique<cosim_observer>();
     auto boostLogDir = boost::filesystem::path(logDir);
     auto boostCfgPath = boost::filesystem::path(cfgPath);
-    observer->cpp_observer = std::make_shared<cse::file_observer>(boostLogDir, boostCfgPath);
+    observer->cpp_observer = std::make_shared<cosim::file_observer>(boostLogDir, boostCfgPath);
     return observer.release();
 }
 
 cosim_observer* cosim_time_series_observer_create()
 {
     auto observer = std::make_unique<cosim_observer>();
-    observer->cpp_observer = std::make_shared<cse::time_series_observer>();
+    observer->cpp_observer = std::make_shared<cosim::time_series_observer>();
     return observer.release();
 }
 
 cosim_observer* cosim_buffered_time_series_observer_create(size_t bufferSize)
 {
     auto observer = std::make_unique<cosim_observer>();
-    observer->cpp_observer = std::make_shared<cse::time_series_observer>(bufferSize);
+    observer->cpp_observer = std::make_shared<cosim::time_series_observer>(bufferSize);
     return observer.release();
 }
 
-cse::variable_type to_cpp_variable_type(cosim_variable_type type)
+cosim::variable_type to_cpp_variable_type(cosim_variable_type type)
 {
     switch (type) {
         case COSIM_VARIABLE_TYPE_REAL:
-            return cse::variable_type::real;
+            return cosim::variable_type::real;
         case COSIM_VARIABLE_TYPE_INTEGER:
-            return cse::variable_type::integer;
+            return cosim::variable_type::integer;
         case COSIM_VARIABLE_TYPE_BOOLEAN:
-            return cse::variable_type::boolean;
+            return cosim::variable_type::boolean;
         case COSIM_VARIABLE_TYPE_STRING:
-            return cse::variable_type::string;
+            return cosim::variable_type::string;
         default:
             throw std::invalid_argument("Variable type not supported");
     }
@@ -979,11 +979,11 @@ cse::variable_type to_cpp_variable_type(cosim_variable_type type)
 int cosim_observer_start_observing(cosim_observer* observer, cosim_slave_index slave, cosim_variable_type type, cosim_value_reference reference)
 {
     try {
-        const auto timeSeriesObserver = std::dynamic_pointer_cast<cse::time_series_observer>(observer->cpp_observer);
+        const auto timeSeriesObserver = std::dynamic_pointer_cast<cosim::time_series_observer>(observer->cpp_observer);
         if (!timeSeriesObserver) {
             throw std::invalid_argument("Invalid observer! The provided observer must be a time_series_observer.");
         }
-        const auto variableId = cse::variable_id{slave, to_cpp_variable_type(type), reference};
+        const auto variableId = cosim::variable_id{slave, to_cpp_variable_type(type), reference};
         timeSeriesObserver->start_observing(variableId);
         return success;
     } catch (...) {
@@ -995,11 +995,11 @@ int cosim_observer_start_observing(cosim_observer* observer, cosim_slave_index s
 int cosim_observer_stop_observing(cosim_observer* observer, cosim_slave_index slave, cosim_variable_type type, cosim_value_reference reference)
 {
     try {
-        const auto timeSeriesObserver = std::dynamic_pointer_cast<cse::time_series_observer>(observer->cpp_observer);
+        const auto timeSeriesObserver = std::dynamic_pointer_cast<cosim::time_series_observer>(observer->cpp_observer);
         if (!timeSeriesObserver) {
             throw std::invalid_argument("Invalid observer! The provided observer must be a time_series_observer.");
         }
-        const auto variableId = cse::variable_id{slave, to_cpp_variable_type(type), reference};
+        const auto variableId = cosim::variable_id{slave, to_cpp_variable_type(type), reference};
         timeSeriesObserver->stop_observing(variableId);
         return success;
     } catch (...) {
@@ -1023,13 +1023,13 @@ int cosim_execution_add_observer(
 
 struct cosim_manipulator_s
 {
-    std::shared_ptr<cse::manipulator> cpp_manipulator;
+    std::shared_ptr<cosim::manipulator> cpp_manipulator;
 };
 
 cosim_manipulator* cosim_override_manipulator_create()
 {
     auto manipulator = std::make_unique<cosim_manipulator>();
-    manipulator->cpp_manipulator = std::make_shared<cse::override_manipulator>();
+    manipulator->cpp_manipulator = std::make_shared<cosim::override_manipulator>();
     return manipulator.release();
 }
 
@@ -1066,7 +1066,7 @@ int cosim_manipulator_slave_set_real(
     const double values[])
 {
     try {
-        const auto man = std::dynamic_pointer_cast<cse::override_manipulator>(manipulator->cpp_manipulator);
+        const auto man = std::dynamic_pointer_cast<cosim::override_manipulator>(manipulator->cpp_manipulator);
         if (!man) {
             throw std::invalid_argument("Invalid manipulator!");
         }
@@ -1088,7 +1088,7 @@ int cosim_manipulator_slave_set_integer(
     const int values[])
 {
     try {
-        const auto man = std::dynamic_pointer_cast<cse::override_manipulator>(manipulator->cpp_manipulator);
+        const auto man = std::dynamic_pointer_cast<cosim::override_manipulator>(manipulator->cpp_manipulator);
         if (!man) {
             throw std::invalid_argument("Invalid manipulator!");
         }
@@ -1110,7 +1110,7 @@ int cosim_manipulator_slave_set_boolean(
     const bool values[])
 {
     try {
-        const auto man = std::dynamic_pointer_cast<cse::override_manipulator>(manipulator->cpp_manipulator);
+        const auto man = std::dynamic_pointer_cast<cosim::override_manipulator>(manipulator->cpp_manipulator);
         if (!man) {
             throw std::invalid_argument("Invalid manipulator!");
         }
@@ -1132,7 +1132,7 @@ int cosim_manipulator_slave_set_string(
     const char* values[])
 {
     try {
-        const auto man = std::dynamic_pointer_cast<cse::override_manipulator>(manipulator->cpp_manipulator);
+        const auto man = std::dynamic_pointer_cast<cosim::override_manipulator>(manipulator->cpp_manipulator);
         if (!man) {
             throw std::invalid_argument("Invalid manipulator!");
         }
@@ -1154,11 +1154,11 @@ int cosim_manipulator_slave_reset(
     size_t nv)
 {
     try {
-        const auto man = std::dynamic_pointer_cast<cse::override_manipulator>(manipulator->cpp_manipulator);
+        const auto man = std::dynamic_pointer_cast<cosim::override_manipulator>(manipulator->cpp_manipulator);
         if (!man) {
             throw std::invalid_argument("Invalid manipulator!");
         }
-        cse::variable_type vt = to_cpp_variable_type(type);
+        cosim::variable_type vt = to_cpp_variable_type(type);
         for (size_t i = 0; i < nv; i++) {
             man->reset_variable(slaveIndex, vt, variables[i]);
         }
@@ -1172,7 +1172,7 @@ int cosim_manipulator_slave_reset(
 cosim_manipulator* cosim_scenario_manager_create()
 {
     auto manipulator = std::make_unique<cosim_manipulator>();
-    manipulator->cpp_manipulator = std::make_shared<cse::scenario_manager>();
+    manipulator->cpp_manipulator = std::make_shared<cosim::scenario_manager>();
     return manipulator.release();
 }
 
@@ -1183,7 +1183,7 @@ int cosim_execution_load_scenario(
 {
     try {
         auto time = execution->cpp_execution->current_time();
-        const auto manager = std::dynamic_pointer_cast<cse::scenario_manager>(manipulator->cpp_manipulator);
+        const auto manager = std::dynamic_pointer_cast<cosim::scenario_manager>(manipulator->cpp_manipulator);
         if (!manager) {
             throw std::invalid_argument("Invalid manipulator! The provided manipulator must be a scenario_manager.");
         }
@@ -1198,7 +1198,7 @@ int cosim_execution_load_scenario(
 int cosim_scenario_is_running(cosim_manipulator* manipulator)
 {
     try {
-        const auto manager = std::dynamic_pointer_cast<cse::scenario_manager>(manipulator->cpp_manipulator);
+        const auto manager = std::dynamic_pointer_cast<cosim::scenario_manager>(manipulator->cpp_manipulator);
         if (!manager) {
             throw std::invalid_argument("Invalid manipulator! The provided manipulator must be a scenario_manager.");
         }
@@ -1212,7 +1212,7 @@ int cosim_scenario_is_running(cosim_manipulator* manipulator)
 int cosim_scenario_abort(cosim_manipulator* manipulator)
 {
     try {
-        const auto manager = std::dynamic_pointer_cast<cse::scenario_manager>(manipulator->cpp_manipulator);
+        const auto manager = std::dynamic_pointer_cast<cosim::scenario_manager>(manipulator->cpp_manipulator);
         if (!manager) {
             throw std::invalid_argument("Invalid manipulator! The provided manipulator must be a scenario_manager.");
         }
@@ -1251,7 +1251,7 @@ int cosim_get_modified_variables(cosim_execution* execution, cosim_variable_id i
 int cosim_log_setup_simple_console_logging()
 {
     try {
-        cse::log::setup_simple_console_logging();
+        cosim::log::setup_simple_console_logging();
         return success;
     } catch (...) {
         handle_current_exception();
@@ -1264,22 +1264,22 @@ void cosim_log_set_output_level(cosim_log_severity_level level)
 {
     switch (level) {
         case COSIM_LOG_SEVERITY_TRACE:
-            cse::log::set_global_output_level(cse::log::trace);
+            cosim::log::set_global_output_level(cosim::log::trace);
             break;
         case COSIM_LOG_SEVERITY_DEBUG:
-            cse::log::set_global_output_level(cse::log::debug);
+            cosim::log::set_global_output_level(cosim::log::debug);
             break;
         case COSIM_LOG_SEVERITY_INFO:
-            cse::log::set_global_output_level(cse::log::info);
+            cosim::log::set_global_output_level(cosim::log::info);
             break;
         case COSIM_LOG_SEVERITY_WARNING:
-            cse::log::set_global_output_level(cse::log::warning);
+            cosim::log::set_global_output_level(cosim::log::warning);
             break;
         case COSIM_LOG_SEVERITY_ERROR:
-            cse::log::set_global_output_level(cse::log::error);
+            cosim::log::set_global_output_level(cosim::log::error);
             break;
         case COSIM_LOG_SEVERITY_FATAL:
-            cse::log::set_global_output_level(cse::log::fatal);
+            cosim::log::set_global_output_level(cosim::log::fatal);
             break;
         default:
             assert(false);

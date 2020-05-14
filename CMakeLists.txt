@@ -12,10 +12,9 @@ project("libcosimc"
 option(BUILD_SHARED_LIBS "Build shared libraries instead of static libraries" ON)
 option(LIBCOSIMC_TREAT_WARNINGS_AS_ERRORS "Treat compiler warnings as errors" ON)
 option(LIBCOSIMC_BUILD_TESTS "Build test suite" ON)
-option(LIBCOSIMC_BUILD_PRIVATE_APIDOC "Build private API documentation" OFF)
 option(LIBCOSIMC_STANDALONE_INSTALLATION "Whether to build for a standalone installation (Linux only; sets a relative RPATH)" OFF)
 option(LIBCOSIMC_USING_CONAN "Whether Conan is used for package management" OFF)
-option(CSECORE_WITH_FMUPROXY "Whether or not to build with fmuproxy integration" OFF)
+
 
 # ==============================================================================
 # Global internal configuration
@@ -113,7 +112,7 @@ if(LIBCOSIMC_USING_CONAN)
     endif()
 endif()
 
-find_package(csecore REQUIRED)
+find_package(libcosim REQUIRED)
 
 # ==============================================================================
 # Targets
@@ -123,7 +122,7 @@ add_library(cosimc "include/cosim.h" "src/cosim.cpp")
 
 target_compile_features(cosimc PRIVATE "cxx_std_17")
 target_include_directories(cosimc PUBLIC "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>")
-target_link_libraries(cosimc PUBLIC csecore::csecorecpp)
+target_link_libraries(cosimc PUBLIC libcosim::cosim)
 if(WIN32 AND NOT BUILD_SHARED_LIBS)
     set_target_properties(cosimc PROPERTIES OUTPUT_NAME "libcosimc")
 endif()
@@ -154,17 +153,7 @@ if(DOXYGEN_FOUND)
     set(DOXYGEN_JAVADOC_AUTOBRIEF "YES")
     set(DOXYGEN_QT_AUTOBRIEF "YES")
     set(DOXYGEN_MULTILINE_CPP_IS_BRIEF "YES")
-    set(DOXYGEN_EXCLUDE_PATTERNS "*.cpp" "*.c")
     set(doxygenInputs "${CMAKE_SOURCE_DIR}/include")
-    if(LIBCOSIMC_BUILD_PRIVATE_APIDOC)
-        list(APPEND doxygenInputs
-            "${CMAKE_SOURCE_DIR}/src"
-        )
-        list(APPEND DOXYGEN_STRIP_FROM_INC_PATH
-            "${CMAKE_SOURCE_DIR}/src"
-        )
-        list(APPEND DOXYGEN_STRIP_FROM_PATH "${CMAKE_SOURCE_DIR}")
-    endif()
     doxygen_add_docs(doc ${doxygenInputs})
     add_custom_target(
         install-doc
