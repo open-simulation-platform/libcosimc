@@ -9,7 +9,6 @@ project("libcosimc" VERSION ${projectVersion})
 option(BUILD_SHARED_LIBS "Build shared libraries instead of static libraries" ON)
 option(LIBCOSIMC_TREAT_WARNINGS_AS_ERRORS "Treat compiler warnings as errors" ON)
 option(LIBCOSIMC_BUILD_TESTS "Build test suite" ON)
-option(LIBCOSIMC_BUILD_PRIVATE_APIDOC "Build private API documentation" OFF)
 option(LIBCOSIMC_STANDALONE_INSTALLATION "Whether to build for a standalone installation (Linux only; sets a relative RPATH)" OFF)
 option(LIBCOSIMC_USING_CONAN "Whether Conan is used for package management" OFF)
 
@@ -154,17 +153,7 @@ if(DOXYGEN_FOUND)
     set(DOXYGEN_JAVADOC_AUTOBRIEF "YES")
     set(DOXYGEN_QT_AUTOBRIEF "YES")
     set(DOXYGEN_MULTILINE_CPP_IS_BRIEF "YES")
-    set(DOXYGEN_EXCLUDE_PATTERNS "*.cpp" "*.c")
     set(doxygenInputs "${CMAKE_SOURCE_DIR}/include")
-    if(LIBCOSIMC_BUILD_PRIVATE_APIDOC)
-        list(APPEND doxygenInputs
-            "${CMAKE_SOURCE_DIR}/src"
-        )
-        list(APPEND DOXYGEN_STRIP_FROM_INC_PATH
-            "${CMAKE_SOURCE_DIR}/src"
-        )
-        list(APPEND DOXYGEN_STRIP_FROM_PATH "${CMAKE_SOURCE_DIR}")
-    endif()
     doxygen_add_docs(doc ${doxygenInputs})
     add_custom_target(
         install-doc
