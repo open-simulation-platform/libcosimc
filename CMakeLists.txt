@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.13)
 file(STRINGS "${CMAKE_SOURCE_DIR}/version.txt" projectVersion)
-project("libcosimc" VERSION ${projectVersion})
+project("libcosimc"
+    VERSION "${projectVersion}"
+    DESCRIPTION "C wrapper for the libcosim C++ library"
+)
 
 # ==============================================================================
 # Build settings
@@ -115,7 +118,7 @@ find_package(libcosim REQUIRED)
 # Targets
 # ==============================================================================
 
-add_library(cosimc include/cosim.h src/cosim.cpp)
+add_library(cosimc "include/cosim.h" "src/cosim.cpp")
 
 target_compile_features(cosimc PRIVATE "cxx_std_17")
 target_include_directories(cosimc PUBLIC "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>")
@@ -134,7 +137,6 @@ install(
 )
 install(DIRECTORY "include/" DESTINATION "${LIBCOSIMC_HEADER_INSTALL_DIR}")
 
-
 # ==============================================================================
 # API documentation
 # ==============================================================================
@@ -142,8 +144,6 @@ install(DIRECTORY "include/" DESTINATION "${LIBCOSIMC_HEADER_INSTALL_DIR}")
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
     message("Found Doxygen, API documentation will be built.")
-    set(DOXYGEN_PROJECT_NAME "libcosimc")
-    set(DOXYGEN_PROJECT_BRIEF "C library for distributed co-simulation")
     set(DOXYGEN_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/output/doc")
     set(DOXYGEN_GENERATE_LATEX "NO")
     set(DOXYGEN_RECURSIVE "YES")
@@ -169,6 +169,7 @@ endif()
 # ==============================================================================
 # Tests
 # ==============================================================================
+
 if(LIBCOSIMC_BUILD_TESTS)
     enable_testing()
 
@@ -189,18 +190,16 @@ if(LIBCOSIMC_BUILD_TESTS)
             "variable_metadata_test"
             )
 
-    include("AddTestExecutable")
-    foreach(test IN LISTS tests)
-        add_test_executable(
-                "${test}"
-                FOLDER "C tests"
-                SOURCES "tests/${test}.c"
-                DEPENDENCIES cosimc
-                DATA_DIR "${CMAKE_CURRENT_SOURCE_DIR}/tests/data"
+    foreach(testName IN LISTS tests)
+        add_executable("${testName}" "tests/${testName}.c")
+        target_link_libraries("${testName}" PRIVATE cosimc)
+        add_test(NAME "${testName}" COMMAND "${testName}")
+        set_property(
+            TEST "${testName}"
+            PROPERTY ENVIRONMENT "TEST_DATA_DIR=${CMAKE_SOURCE_DIR}/tests/data"
         )
     endforeach()
 endif()
-
 
 # ==============================================================================
 # Exports and remaining installation
@@ -236,14 +235,3 @@ write_basic_package_version_file(
     VERSION "${PROJECT_VERSION}"
     COMPATIBILITY "SameMajorVersion")
 install(FILES "${versionFile}" DESTINATION "${LIBCOSIMC_CMAKE_INSTALL_DIR}")
-
-# Install custom find modules
-install(FILES
-        "${CMAKE_SOURCE_DIR}/cmake/FindFMILibrary.cmake"
-        "${CMAKE_SOURCE_DIR}/cmake/FindLIBZIP.cmake"
-        "${CMAKE_SOURCE_DIR}/cmake/FindMS_GSL.cmake"
-        "${CMAKE_SOURCE_DIR}/cmake/FindTHRIFT.cmake"
-        "${CMAKE_SOURCE_DIR}/cmake/FindYAML_CPP.cmake"
-        DESTINATION
-        "${LIBCOSIMC_CMAKE_INSTALL_DIR}"
-)
