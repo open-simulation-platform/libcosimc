@@ -1,7 +1,7 @@
 name: libcosimc CI Conan
 
 # This workflow is triggered on pushes to the repository.
-on: [push]
+on: [push, repository_dispatch]
 
 env:
   CONAN_LOGIN_USERNAME_OSP: ${{ secrets.osp_conan_usr }}
