@@ -76,7 +76,7 @@ jobs:
         shell: bash
         run: |
           BRANCH=${GITHUB_REF#refs/heads/}
-          SHORT_BRANCH=${BRANCH:0:50}
+          SHORT_BRANCH=${BRANCH:0:35}
           CHANNEL=${SHORT_BRANCH//\//_}
           conan create -s build_type=${{ matrix.build_type }} -s compiler.version=${{ matrix.compiler_version }} -o libcosim:${{ matrix.option_fmuproxy }} . osp/${CHANNEL}
       - name: Conan upload
