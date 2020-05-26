@@ -1,7 +1,7 @@
 libcosimc - OSP C co-simulation API
 ===================================
  
-This repository contains the OSP C library for co-simulations which wraps and exposes a subset of the `libcosim` 
+This repository contains the OSP C library for co-simulations which wraps and exposes a subset of the [`libcosim`] 
 library's functions.
    
 See [`CONTRIBUTING.md`] for contributor guidelines and [`LICENSE`] for
@@ -22,3 +22,4 @@ When running cmake use `-DLIBCOSIMC_USING_CONAN=TRUE`
 [`CONTRIBUTING.md`]: ./CONTRIBUTING.md
 [`LICENSE`]: ./LICENSE
 [Step 2]: https://github.com/open-simulation-platform/libcosim#step-2-prepare-build-system
+[`libcosim`]: https://github.com/open-simulation-platform/libcosim
