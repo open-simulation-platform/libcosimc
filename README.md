@@ -1,5 +1,6 @@
 libcosimc - OSP C co-simulation API
 ===================================
+![libcosimc CI Conan](https://github.com/open-simulation-platform/libcosimc/workflows/libcosimc%20CI%20Conan/badge.svg)
  
 This repository contains the OSP C library for co-simulations which wraps and exposes a subset of the [`libcosim`] 
 library's functions.
