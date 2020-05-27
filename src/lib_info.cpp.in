@@ -1,0 +1,17 @@
+#include "cosim.h"
+
+#include <cosim/lib_info.hpp>
+
+
+cosim_version cosim_libcosim_version()
+{
+    const auto v = cosim::library_version();
+    return { v.major, v.minor, v.patch };
+}
+
+cosim_version cosim_libcosimc_version()
+{
+    // clang-format off
+    return { @PROJECT_VERSION_MAJOR@, @PROJECT_VERSION_MINOR@, @PROJECT_VERSION_PATCH@ };
+    // clang-format on
+}
