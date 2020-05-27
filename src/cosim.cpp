@@ -14,11 +14,12 @@
 #include <cosim/fmi/importer.hpp>
 #include <cosim/log/simple.hpp>
 #include <cosim/manipulator.hpp>
-#include <cosim/model.hpp>
+#include <cosim/model_description.hpp>
 #include <cosim/observer.hpp>
 #include <cosim/orchestration.hpp>
 #include <cosim/osp_config_parser.hpp>
 #include <cosim/ssp/ssp_loader.hpp>
+#include <cosim/time.hpp>
 
 #include <boost/fiber/future.hpp>
 
