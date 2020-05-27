@@ -1117,6 +1117,21 @@ int cosim_log_setup_simple_console_logging();
 void cosim_log_set_output_level(cosim_log_severity_level level);
 
 
+/// Software version
+typedef struct {
+    int major;
+    int minor;
+    int patch;
+} cosim_version;
+
+
+/// Returns the version of the wrapped libcosim C++ library.
+cosim_version cosim_libcosim_version();
+
+/// Returns the libcosimc version.
+cosim_version cosim_libcosimc_version();
+
+
 #ifdef __cplusplus
 } // extern(C)
 #endif

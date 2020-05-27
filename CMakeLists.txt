@@ -118,7 +118,21 @@ find_package(libcosim REQUIRED)
 # Targets
 # ==============================================================================
 
-add_library(cosimc "include/cosim.h" "src/cosim.cpp")
+set(generatedSources
+    "lib_info.cpp"
+)
+set(generatedSourcesFull)
+foreach(src IN LISTS generatedSources)
+    set(tgt "${CMAKE_CURRENT_BINARY_DIR}/${src}")
+    configure_file(
+        "${CMAKE_SOURCE_DIR}/src/${src}.in"
+        "${tgt}"
+        @ONLY
+    )
+    list(APPEND generatedSourcesFull "${tgt}")
+endforeach()
+
+add_library(cosimc "include/cosim.h" "src/cosim.cpp" ${generatedSourcesFull})
 
 target_compile_features(cosimc PRIVATE "cxx_std_17")
 target_include_directories(cosimc PUBLIC "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>")
