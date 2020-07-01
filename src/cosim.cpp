@@ -149,6 +149,8 @@ const char* cosim_last_error_message()
 struct cosim_execution_s
 {
     std::unique_ptr<cosim::execution> cpp_execution;
+    std::shared_ptr<cosim::real_time_config> real_time_config;
+    std::shared_ptr<const cosim::real_time_metrics> real_time_metrics;
     cosim::entity_index_maps entity_maps;
     std::thread t;
     boost::fibers::future<bool> simulate_result;
@@ -167,6 +169,8 @@ cosim_execution* cosim_execution_create(cosim_time_point startTime, cosim_durati
         execution->cpp_execution = std::make_unique<cosim::execution>(
             to_time_point(startTime),
             std::make_unique<cosim::fixed_step_algorithm>(to_duration(stepSize)));
+        execution->real_time_config = execution->cpp_execution->get_real_time_config();
+        execution->real_time_metrics = execution->cpp_execution->get_real_time_metrics();
         execution->error_code = COSIM_ERRC_SUCCESS;
         execution->state = COSIM_EXECUTION_STOPPED;
 
@@ -195,6 +199,10 @@ cosim_execution* cosim_osp_config_execution_create(
             *execution->cpp_execution,
             config.system_structure,
             config.initial_values);
+        execution->real_time_config = execution->cpp_execution->get_real_time_config();
+        execution->real_time_metrics = execution->cpp_execution->get_real_time_metrics();
+        execution->error_code = COSIM_ERRC_SUCCESS;
+        execution->state = COSIM_EXECUTION_STOPPED;
 
         return execution.release();
     } catch (...) {
@@ -222,6 +230,10 @@ cosim_execution* cosim_ssp_execution_create(
             *execution->cpp_execution,
             config.system_structure,
             config.parameter_sets.at(""));
+        execution->real_time_config = execution->cpp_execution->get_real_time_config();
+        execution->real_time_metrics = execution->cpp_execution->get_real_time_metrics();
+        execution->error_code = COSIM_ERRC_SUCCESS;
+        execution->state = COSIM_EXECUTION_STOPPED;
 
         return execution.release();
     } catch (...) {
@@ -249,6 +261,10 @@ cosim_execution* cosim_ssp_fixed_step_execution_create(
             *execution->cpp_execution,
             config.system_structure,
             config.parameter_sets.at(""));
+        execution->real_time_config = execution->cpp_execution->get_real_time_config();
+        execution->real_time_metrics = execution->cpp_execution->get_real_time_metrics();
+        execution->error_code = COSIM_ERRC_SUCCESS;
+        execution->state = COSIM_EXECUTION_STOPPED;
 
         return execution.release();
     } catch (...) {
@@ -303,8 +319,7 @@ int cosim_slave_get_num_variables(cosim_execution* execution, cosim_slave_index 
     try {
         return static_cast<int>(execution
                                     ->cpp_execution
-                                    ->get_simulator(slave)
-                                    ->model_description()
+                                    ->get_model_description(slave)
                                     .variables
                                     .size());
     } catch (...) {
@@ -384,8 +399,7 @@ int cosim_slave_get_variables(cosim_execution* execution, cosim_slave_index slav
     try {
         const auto vars = execution
                               ->cpp_execution
-                              ->get_simulator(slave)
-                              ->model_description()
+                              ->get_model_description(slave)
                               .variables;
         size_t var = 0;
         for (; var < std::min(numVariables, vars.size()); var++) {
@@ -598,9 +612,11 @@ int cosim_execution_get_status(cosim_execution* execution, cosim_execution_statu
         status->error_code = execution->error_code;
         status->state = execution->state;
         status->current_time = to_integer_time_point(execution->cpp_execution->current_time());
-        status->real_time_factor = execution->cpp_execution->get_measured_real_time_factor();
-        status->real_time_factor_target = execution->cpp_execution->get_real_time_factor_target();
-        status->is_real_time_simulation = execution->cpp_execution->is_real_time_simulation() ? 1 : 0;
+        status->rolling_average_real_time_factor = execution->real_time_metrics->rolling_average_real_time_factor.load();
+        status->total_average_real_time_factor = execution->real_time_metrics->total_average_real_time_factor.load();
+        status->real_time_factor_target = execution->real_time_config->real_time_factor_target.load();
+        status->is_real_time_simulation = execution->real_time_config->real_time_simulation.load() ? 1 : 0;
+        status->steps_to_monitor = execution->real_time_config->steps_to_monitor.load();
         execution_async_health_check(execution);
         return success;
     } catch (...) {
@@ -616,7 +632,7 @@ int cosim_execution_get_status(cosim_execution* execution, cosim_execution_statu
 int cosim_execution_enable_real_time_simulation(cosim_execution* execution)
 {
     try {
-        execution->cpp_execution->enable_real_time_simulation();
+        execution->real_time_config->real_time_simulation.store(true);
         return success;
     } catch (...) {
         handle_current_exception();
@@ -627,7 +643,7 @@ int cosim_execution_enable_real_time_simulation(cosim_execution* execution)
 int cosim_execution_disable_real_time_simulation(cosim_execution* execution)
 {
     try {
-        execution->cpp_execution->disable_real_time_simulation();
+        execution->real_time_config->real_time_simulation.store(false);
         return success;
     } catch (...) {
         handle_current_exception();
@@ -638,7 +654,18 @@ int cosim_execution_disable_real_time_simulation(cosim_execution* execution)
 int cosim_execution_set_real_time_factor_target(cosim_execution* execution, double realTimeFactor)
 {
     try {
-        execution->cpp_execution->set_real_time_factor_target(realTimeFactor);
+        execution->real_time_config->real_time_factor_target.store(realTimeFactor);
+        return success;
+    } catch (...) {
+        handle_current_exception();
+        return failure;
+    }
+}
+
+int cosim_execution_set_steps_to_monitor(cosim_execution* execution, int stepsToMonitor)
+{
+    try {
+        execution->real_time_config->steps_to_monitor.store(stepsToMonitor);
         return success;
     } catch (...) {
         handle_current_exception();
