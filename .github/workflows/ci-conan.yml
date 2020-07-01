@@ -66,6 +66,8 @@ jobs:
           - os: windows-2016
             build_type: Debug
             option_fmuproxy: 'fmuproxy=True'
+    env:
+      CONAN_USE_ALWAYS_SHORT_PATHS: True
 
     steps:
       - uses: actions/checkout@v2
