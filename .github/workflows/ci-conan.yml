@@ -67,7 +67,7 @@ jobs:
             build_type: Debug
             option_fmuproxy: 'fmuproxy=True'
     env:
-      CONAN_USE_ALWAYS_SHORT_PATHS: True
+      CONAN_USE_ALWAYS_SHORT_PATHS: 'True'
 
     steps:
       - uses: actions/checkout@v2
