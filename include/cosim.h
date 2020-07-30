@@ -381,12 +381,14 @@ int cosim_execution_stop(cosim_execution* execution);
 /// Enables real time simulation for an execution.
 int cosim_execution_enable_real_time_simulation(cosim_execution* execution);
 
-
 /// Disables real time simulation for an execution.
 int cosim_execution_disable_real_time_simulation(cosim_execution* execution);
 
 /// Sets a custom real time factor.
 int cosim_execution_set_real_time_factor_target(cosim_execution* execution, double realTimeFactor);
+
+/// Sets the number of steps to monitor for rolling average real time factor measurement.
+int cosim_execution_set_steps_to_monitor(cosim_execution* execution, int stepsToMonitor);
 
 
 /// Execution states.
@@ -406,12 +408,16 @@ typedef struct
     cosim_execution_state state;
     /// Last recorded error code.
     int error_code;
-    /// Current real time factor.
-    double real_time_factor;
+    /// Total average real time factor.
+    double total_average_real_time_factor;
+    /// Rolling average real time factor.
+    double rolling_average_real_time_factor;
     /// Current real time factor target.
     double real_time_factor_target;
     /// Executing towards real time target.
     int is_real_time_simulation;
+    /// Number of steps used in rolling average real time factor measurement.
+    int steps_to_monitor;
 } cosim_execution_status;
 
 /**
@@ -1118,7 +1124,8 @@ void cosim_log_set_output_level(cosim_log_severity_level level);
 
 
 /// Software version
-typedef struct {
+typedef struct
+{
     int major;
     int minor;
     int patch;
