@@ -960,7 +960,7 @@ cosim_observer* cosim_last_value_observer_create()
 cosim_observer* cosim_file_observer_create(const char* logDir)
 {
     auto observer = std::make_unique<cosim_observer>();
-    auto logPath = boost::filesystem::path(logDir);
+    auto logPath = cosim::filesystem::path(logDir);
     observer->cpp_observer = std::make_shared<cosim::file_observer>(logPath);
     return observer.release();
 }
@@ -968,9 +968,9 @@ cosim_observer* cosim_file_observer_create(const char* logDir)
 cosim_observer* cosim_file_observer_create_from_cfg(const char* logDir, const char* cfgPath)
 {
     auto observer = std::make_unique<cosim_observer>();
-    auto boostLogDir = boost::filesystem::path(logDir);
-    auto boostCfgPath = boost::filesystem::path(cfgPath);
-    observer->cpp_observer = std::make_shared<cosim::file_observer>(boostLogDir, boostCfgPath);
+    auto fsLogDir = cosim::filesystem::path(logDir);
+    auto fsCfgPath = cosim::filesystem::path(cfgPath);
+    observer->cpp_observer = std::make_shared<cosim::file_observer>(fsLogDir, fsCfgPath);
     return observer.release();
 }
 
