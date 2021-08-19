@@ -5,6 +5,9 @@ project("libcosimc"
     DESCRIPTION "C wrapper for the libcosim C++ library"
 )
 
+# To enable verbose when needed
+set(CMAKE_VERBOSE_MAKEFILE ON)
+
 # ==============================================================================
 # Build settings
 # ==============================================================================
