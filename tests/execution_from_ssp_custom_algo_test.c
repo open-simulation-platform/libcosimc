@@ -70,7 +70,7 @@ int main()
     char name[SLAVE_NAME_MAX_SIZE];
     strcpy(name, "KnuckleBoomCrane");
     for (size_t i = 0; i < numSlaves; i++) {
-        if (0 == strncmp(infos[i].name, name, SLAVE_NAME_MAX_SIZE)) {
+        if (0 == strncmp(infos[i].name, name, 15)) {
             double value = -1;
             cosim_slave_index slaveIndex = infos[i].index;
             cosim_value_reference varIndex = 2;
