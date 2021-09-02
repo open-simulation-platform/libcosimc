@@ -67,8 +67,9 @@ int main()
     rc = cosim_execution_get_slave_infos(execution, &infos[0], numSlaves);
     if (rc < 0) { goto Lerror; }
 
+    const char name[] = "KnuckleBoomCrane";
     for (size_t i = 0; i < numSlaves; i++) {
-        if (0 == strncmp(infos[i].name, "KnuckleBoomCrane", SLAVE_NAME_MAX_SIZE)) {
+        if (0 == strncmp(infos[i].name, name, SLAVE_NAME_MAX_SIZE)) {
             double value = -1;
             cosim_slave_index slaveIndex = infos[i].index;
             cosim_value_reference varIndex = 2;
