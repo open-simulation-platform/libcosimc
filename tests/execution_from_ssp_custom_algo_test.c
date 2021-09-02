@@ -67,7 +67,7 @@ int main()
     rc = cosim_execution_get_slave_infos(execution, &infos[0], numSlaves);
     if (rc < 0) { goto Lerror; }
 
-    char name[17];
+    char name[SLAVE_NAME_MAX_SIZE];
     strcpy(name, "KnuckleBoomCrane");
     for (size_t i = 0; i < numSlaves; i++) {
         if (0 == strncmp(infos[i].name, name, SLAVE_NAME_MAX_SIZE)) {
