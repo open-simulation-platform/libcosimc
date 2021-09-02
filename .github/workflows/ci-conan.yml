@@ -23,7 +23,7 @@ jobs:
           cat <<'EOF' >/tmp/osp-builder-docker/Dockerfile
           FROM conanio/gcc${{ matrix.compiler_version }}
           USER root
-          RUN apt-get update && apt-get install -y --force-yes patchelf
+          RUN apt-get update && apt-get install -y --force-yes doxygen
           ENV CONAN_LOGIN_USERNAME_OSP=${{ secrets.osp_artifactory_usr }}
           ENV CONAN_PASSWORD_OSP=${{ secrets.osp_artifactory_pwd }}
           ENV CONAN_REVISIONS_ENABLED=1
