@@ -6,7 +6,7 @@ project("libcosimc"
 )
 
 # To enable verbose when needed
-set(CMAKE_VERBOSE_MAKEFILE ON)
+set(CMAKE_VERBOSE_MAKEFILE OFF)
 
 # ==============================================================================
 # Build settings
