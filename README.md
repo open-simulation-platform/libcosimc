@@ -14,9 +14,9 @@ How to build
 
 `libcosimc` can be built in the same way as libcosim with the following differences in [step 2]
 
-To include FMU-proxy support use `-o libcosim:'fmuproxy=True'` when installing dependencies in 
+To include FMU-proxy support use `-o libcosim:'proxyfmu=True'` when installing dependencies in 
      
-     conan install ..  -o libcosim:'fmuproxy=True' --build=missing
+     conan install ..  -o libcosim:'proxyfmu=True' --build=missing
      
 When running cmake use `-DLIBCOSIMC_USING_CONAN=TRUE`
  

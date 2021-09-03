@@ -5,6 +5,9 @@ project("libcosimc"
     DESCRIPTION "C wrapper for the libcosim C++ library"
 )
 
+# To enable verbose when needed
+set(CMAKE_VERBOSE_MAKEFILE OFF)
+
 # ==============================================================================
 # Build settings
 # ==============================================================================
@@ -136,7 +139,12 @@ add_library(cosimc "include/cosim.h" "src/cosim.cpp" ${generatedSourcesFull})
 
 target_compile_features(cosimc PRIVATE "cxx_std_17")
 target_include_directories(cosimc PUBLIC "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>")
-target_link_libraries(cosimc PUBLIC libcosim::cosim)
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    target_link_libraries(cosimc PUBLIC libcosim::cosim stdc++)
+else()
+    target_link_libraries(cosimc PUBLIC libcosim::cosim)
+endif()
+
 if(WIN32 AND NOT BUILD_SHARED_LIBS)
     set_target_properties(cosimc PROPERTIES OUTPUT_NAME "libcosimc")
 endif()
