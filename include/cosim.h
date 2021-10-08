@@ -994,7 +994,7 @@ cosim_observer* cosim_file_observer_create(const char* logDir);
 cosim_observer* cosim_file_observer_create_from_cfg(const char* logDir, const char* logConfigXml);
 
 /**
- * Creates an observer which buffers variable values in memory.
+ * Creates an observer which buffers variable values in memory. The buffer will keep is 10000 variable values in memory
  *
  * To start observing a variable, `cosim_observer_start_observing()` must be called.
  */
