@@ -499,7 +499,7 @@ cosim_slave_index cosim_execution_add_slave(
     cosim_slave* slave)
 {
     try {
-        auto index = execution->cpp_execution->add_slave(cosim::make_background_thread_slave(slave->instance), slave->instanceName);
+        auto index = execution->cpp_execution->add_slave(slave->instance, slave->instanceName);
         execution->entity_maps.simulators[slave->instanceName] = index;
         return index;
     } catch (...) {
@@ -541,7 +541,7 @@ int cosim_execution_simulate_until(cosim_execution* execution, cosim_time_point 
     } else {
         execution->state = COSIM_EXECUTION_RUNNING;
         try {
-            const bool notStopped = execution->cpp_execution->simulate_until(to_time_point(targetTime)).get();
+            const bool notStopped = execution->cpp_execution->simulate_until(to_time_point(targetTime));
             execution->state = COSIM_EXECUTION_STOPPED;
             return notStopped;
         } catch (...) {
@@ -560,7 +560,7 @@ int cosim_execution_start(cosim_execution* execution)
         try {
             execution->state = COSIM_EXECUTION_RUNNING;
             auto task = boost::fibers::packaged_task<bool()>([execution]() {
-                return execution->cpp_execution->simulate_until(std::nullopt).get();
+                return execution->cpp_execution->simulate_until(std::nullopt);
             });
             execution->simulate_result = task.get_future();
             execution->t = std::thread(std::move(task));
