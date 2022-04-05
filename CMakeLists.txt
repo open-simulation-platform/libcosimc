@@ -116,6 +116,7 @@ if(LIBCOSIMC_USING_CONAN)
 endif()
 
 find_package(libcosim REQUIRED)
+find_package(Boost REQUIRED COMPONENTS fiber)
 
 # ==============================================================================
 # Targets
