@@ -25,6 +25,8 @@ option(LIBCOSIMC_USING_CONAN "Whether Conan is used for package management" OFF)
 
 # Our custom CMake scripts go in the cmake/ subdirectory.
 list(INSERT CMAKE_MODULE_PATH 0 "${CMAKE_SOURCE_DIR}/cmake")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_BINARY_DIR}")
+list(APPEND CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}")
 
 # Use a common output directory for all targets.
 # The main purpose of this is to ensure that the DLLs and test executables
@@ -140,10 +142,9 @@ add_library(cosimc "include/cosim.h" "src/cosim.cpp" ${generatedSourcesFull})
 
 target_compile_features(cosimc PRIVATE "cxx_std_17")
 target_include_directories(cosimc PUBLIC "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>")
+target_link_libraries(cosimc PUBLIC libcosim::libcosim Boost::fiber)
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    target_link_libraries(cosimc PUBLIC libcosim::cosim stdc++ Boost::fiber)
-else()
-    target_link_libraries(cosimc PUBLIC libcosim::cosim Boost::fiber)
+    target_link_libraries(cosimc PUBLIC stdc++)
 endif()
 
 if(WIN32 AND NOT BUILD_SHARED_LIBS)
