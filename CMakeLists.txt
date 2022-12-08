@@ -140,7 +140,7 @@ add_library(cosimc "include/cosim.h" "src/cosim.cpp" ${generatedSourcesFull})
 
 target_compile_features(cosimc PRIVATE "cxx_std_17")
 target_include_directories(cosimc PUBLIC "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>")
-target_link_libraries(cosimc PUBLIC libcosim::libcosim Boost::fiber)
+target_link_libraries(cosimc PUBLIC libcosim::cosim Boost::fiber)
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_link_libraries(cosimc PUBLIC stdc++)
 endif()
