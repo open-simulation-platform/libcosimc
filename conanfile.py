@@ -16,7 +16,7 @@ class LibCosimCConan(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
     generators = "cmake", "virtualrunenv"
     requires = (
-        "libcosim/0.10.1@osp/stable"
+        "libcosim/0.10.2@osp/stable"
         )
 
     def set_version(self):
