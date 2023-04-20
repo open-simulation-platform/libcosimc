@@ -9,3 +9,6 @@ cmake-build-*/
 
 ### Vim
 *.swp
+/.vs
+/out/build/x64-debug
+/out/960490943/build/linux-debug
