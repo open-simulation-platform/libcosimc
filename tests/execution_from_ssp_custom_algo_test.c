@@ -63,7 +63,7 @@ int main()
 
     size_t numSlaves = cosim_execution_get_num_slaves(execution);
 
-    cosim_slave_info infos[2];
+    cosim_slave_info infos[3];
     rc = cosim_execution_get_slave_infos(execution, &infos[0], numSlaves);
     if (rc < 0) { goto Lerror; }
 
