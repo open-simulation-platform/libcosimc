@@ -10,7 +10,7 @@ class LibCosimCConan(ConanFile):
     exports = "version.txt"
     scm = {
         "type": "git",
-        "url": "git@github.com:open-simulation-platform/libcosimc.git",
+        "url": "auto",
         "revision": "auto"
     }
     settings = "os", "compiler", "build_type", "arch"
