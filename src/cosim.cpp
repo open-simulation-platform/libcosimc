@@ -192,9 +192,14 @@ cosim_execution* cosim_osp_config_execution_create(
         auto resolver = cosim::default_model_uri_resolver();
         const auto config = cosim::load_osp_config(configPath, *resolver);
 
+        bool waterfall_effect = false;
+        if (config.algorithm == "waterfallFixedStep") {
+            waterfall_effect = true;
+        }
+
         execution->cpp_execution = std::make_unique<cosim::execution>(
             startTimeDefined ? to_time_point(startTime) : config.start_time,
-            std::make_shared<cosim::fixed_step_algorithm>(config.step_size));
+            std::make_shared<cosim::fixed_step_algorithm>(config.step_size, std::nullopt, waterfall_effect));
         execution->entity_maps = cosim::inject_system_structure(
             *execution->cpp_execution,
             config.system_structure,
