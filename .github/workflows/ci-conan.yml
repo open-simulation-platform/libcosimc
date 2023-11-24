@@ -24,6 +24,7 @@ jobs:
           FROM conanio/gcc${{ matrix.compiler_version }}-ubuntu16.04
           ENV CONAN_LOGIN_USERNAME_OSP=${{ secrets.osp_artifactory_usr }}
           ENV CONAN_PASSWORD_OSP=${{ secrets.osp_artifactory_pwd }}
+          ENV LIBCOSIMC_RUN_TESTS_ON_CONAN_BUILD=1
           COPY entrypoint.sh /
           ENTRYPOINT /entrypoint.sh
           EOF
@@ -71,6 +72,7 @@ jobs:
     env:
       CONAN_LOGIN_USERNAME_OSP: ${{ secrets.osp_artifactory_usr }}
       CONAN_PASSWORD_OSP: ${{ secrets.osp_artifactory_pwd }}
+      LIBCOSIMC_RUN_TESTS_ON_CONAN_BUILD: 1
 
     steps:
       - uses: actions/checkout@v4
