@@ -153,6 +153,7 @@ struct cosim_execution_s
     cosim::entity_index_maps entity_maps;
     std::thread t;
     std::future<bool> simulate_result;
+    std::exception_ptr simulate_exception_ptr;
     std::atomic<cosim_execution_state> state;
     int error_code;
 };
@@ -576,8 +577,15 @@ void execution_async_health_check(cosim_execution* execution)
     if (execution->simulate_result.valid()) {
         const auto status = execution->simulate_result.wait_for(std::chrono::duration<int64_t>());
         if (status == std::future_status::ready) {
-            execution->simulate_result.get();
+            try {
+                execution->simulate_result.get();
+            } catch (...) {
+                execution->simulate_exception_ptr = std::current_exception();
+            }
         }
+    }
+    if (auto ep = execution->simulate_exception_ptr) {
+        std::rethrow_exception(ep);
     }
 }
 
@@ -586,6 +594,9 @@ int cosim_execution_stop(cosim_execution* execution)
     try {
         execution->cpp_execution->stop_simulation();
         if (execution->t.joinable()) {
+            if (execution->simulate_exception_ptr) {
+                std::rethrow_exception(execution->simulate_exception_ptr);
+            }
             if (execution->simulate_result.valid()) {
                 execution->simulate_result.get();
             }
