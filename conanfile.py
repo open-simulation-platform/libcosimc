@@ -1,7 +1,7 @@
 import os
 
 from conan import ConanFile
-from conan.tools.cmake import CMake
+from conan.tools.cmake import CMake, cmake_layout
 from conan.tools.env import VirtualRunEnv
 from conan.tools.files import load
 
@@ -45,7 +45,7 @@ class LibCosimCConan(ConanFile):
         "doxygen/[>=1.8]",
     )
     requires = (
-        "libcosim/0.11.0@osp/testing-feature_conan-2",
+        "libcosim/0.10.3@osp/stable",
         "boost/[>=1.71.0]",
     )
 
@@ -55,6 +55,9 @@ class LibCosimCConan(ConanFile):
 
     # Build steps
     generators = "CMakeDeps", "CMakeToolchain"
+
+    def layout(self):
+        cmake_layout(self)
 
     def build(self):
         cmake = CMake(self)
