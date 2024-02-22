@@ -21,13 +21,12 @@
 #include <cosim/ssp/ssp_loader.hpp>
 #include <cosim/time.hpp>
 
-#include <boost/fiber/future.hpp>
-
 #include <algorithm>
 #include <atomic>
 #include <cassert>
 #include <cerrno>
 #include <cstring>
+#include <future>
 #include <iostream>
 #include <mutex>
 #include <optional>
@@ -153,8 +152,7 @@ struct cosim_execution_s
     std::shared_ptr<const cosim::real_time_metrics> real_time_metrics;
     cosim::entity_index_maps entity_maps;
     std::thread t;
-    boost::fibers::future<bool> simulate_result;
-    std::exception_ptr simulate_exception_ptr;
+    std::future<bool> simulate_result;
     std::atomic<cosim_execution_state> state;
     int error_code;
 };
@@ -559,7 +557,7 @@ int cosim_execution_start(cosim_execution* execution)
     } else {
         try {
             execution->state = COSIM_EXECUTION_RUNNING;
-            auto task = boost::fibers::packaged_task<bool()>([execution]() {
+            auto task = std::packaged_task<bool()>([execution]() {
                 return execution->cpp_execution->simulate_until(std::nullopt);
             });
             execution->simulate_result = task.get_future();
@@ -577,14 +575,9 @@ void execution_async_health_check(cosim_execution* execution)
 {
     if (execution->simulate_result.valid()) {
         const auto status = execution->simulate_result.wait_for(std::chrono::duration<int64_t>());
-        if (boost::fibers::future_status::ready == status) {
-            if (auto ep = execution->simulate_result.get_exception_ptr()) {
-                execution->simulate_exception_ptr = ep;
-            }
+        if (status == std::future_status::ready) {
+            execution->simulate_result.get();
         }
-    }
-    if (auto ep = execution->simulate_exception_ptr) {
-        std::rethrow_exception(ep);
     }
 }
 
@@ -593,7 +586,9 @@ int cosim_execution_stop(cosim_execution* execution)
     try {
         execution->cpp_execution->stop_simulation();
         if (execution->t.joinable()) {
-            execution->simulate_result.get();
+            if (execution->simulate_result.valid()) {
+                execution->simulate_result.get();
+            }
             execution->t.join();
         }
         execution->state = COSIM_EXECUTION_STOPPED;
