@@ -45,7 +45,7 @@ class LibCosimCConan(ConanFile):
         "doxygen/[>=1.8]",
     )
     requires = (
-        "libcosim/0.10.3@osp/testing-bugfix_transitive-libs-boost",
+        "libcosim/0.10.3@osp/stable",
     )
 
     # Exports
