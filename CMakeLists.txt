@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.13)
 file(STRINGS "${CMAKE_SOURCE_DIR}/version.txt" projectVersion)
 project("libcosimc"
     VERSION "${projectVersion}"
@@ -16,6 +16,7 @@ option(BUILD_SHARED_LIBS "Build shared libraries instead of static libraries" ON
 option(LIBCOSIMC_TREAT_WARNINGS_AS_ERRORS "Treat compiler warnings as errors" ON)
 option(LIBCOSIMC_BUILD_TESTS "Build test suite" ON)
 option(LIBCOSIMC_STANDALONE_INSTALLATION "Whether to build for a standalone installation (Linux only; sets a relative RPATH)" OFF)
+option(LIBCOSIMC_USING_CONAN "Whether Conan is used for package management" OFF)
 
 
 # ==============================================================================
@@ -61,9 +62,20 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
         string(REPLACE "/W3" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
         string(REPLACE "/W3" "" CMAKE_C_FLAGS ${CMAKE_C_FLAGS})
     endif()
-    add_compile_options("/wd4251" "/wd4996")
+    add_compile_options("/wd4996")
     if(LIBCOSIMC_TREAT_WARNINGS_AS_ERRORS)
         add_compile_options("/WX")
+    endif()
+    if(LIBCOSIMC_USING_CONAN)
+        # C4251: 'identifier' : class 'type' needs to have dll-interface to be
+        #        used by clients of class 'type2'
+        #
+        # This could be a problem if a dependent DLL is compiled against a
+        # different version or variant of the C++ runtime than the one we
+        # use.  An example would be if Boost was built in release mode and
+        # we are compiling in release mode. However, when we use Conan, this
+        # should not be a problem, so we disable the warning.
+        add_compile_options("/wd4251")
     endif()
     add_definitions("-D_SCL_SECURE_NO_WARNINGS" "-D_CRT_SECURE_NO_WARNINGS")
 endif()
@@ -94,7 +106,17 @@ set(LIBCOSIMC_EXPORT_TARGET "${PROJECT_NAME}-targets")
 # Dependencies
 # ==============================================================================
 
+if(LIBCOSIMC_USING_CONAN)
+    if(EXISTS ${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+        include("${CMAKE_BINARY_DIR}/conanbuildinfo.cmake")
+        conan_basic_setup(NO_OUTPUT_DIRS)
+    else()
+        message(FATAL_ERROR "The file conanbuildinfo.cmake doesn't exist, you have to run conan install first")
+    endif()
+endif()
+
 find_package(libcosim REQUIRED)
+find_package(Boost REQUIRED COMPONENTS fiber)
 
 # ==============================================================================
 # Targets
@@ -118,7 +140,7 @@ add_library(cosimc "include/cosim.h" "src/cosim.cpp" ${generatedSourcesFull})
 
 target_compile_features(cosimc PRIVATE "cxx_std_17")
 target_include_directories(cosimc PUBLIC "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>")
-target_link_libraries(cosimc PUBLIC libcosim::cosim)
+target_link_libraries(cosimc PUBLIC libcosim::cosim Boost::fiber)
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_link_libraries(cosimc PUBLIC stdc++)
 endif()

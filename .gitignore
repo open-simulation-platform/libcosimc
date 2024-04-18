@@ -5,8 +5,7 @@
 
 .idea
 cmake-build-*/
-build/
-CMakeUserPresets.json
+
 
 ### Vim
 *.swp
