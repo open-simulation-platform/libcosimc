@@ -4,6 +4,9 @@ For a more detailed list of all changes, click the header links for each version
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+### [v0.10.2] - 2024-12-13
+Using libcosim v0.10.4. Refer to `libcosim` [changelog](https://github.com/open-simulation-platform/libcosim/blob/master/CHANGELOG.md) for details.
+
 ### [v0.10.2] - 2023-02-09
 Using libcosim v0.10.2. Refer to `libcosim` [changelog](https://github.com/open-simulation-platform/libcosim/blob/master/CHANGELOG.md) for details.
 
