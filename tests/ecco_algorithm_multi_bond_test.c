@@ -151,14 +151,14 @@ int main()
     const float threshold = 1e-4f;
     diffs = (double*)malloc(nSamples * sizeof(double));
     size_t ptr = 0;
-    for (int i = 1; i < nSamples; ++i) {
+    for (size_t i = 1; i < nSamples; ++i) {
         diffs[ptr++] = fabs((cvo[i] * cfi[i]) - (wvi[i] * wfo[i]));;
     }
 
     const size_t offset = 500;
     for (size_t i = (nSamples > offset ? nSamples - offset : 0); i < nSamples; i++) {
         if (diffs[i] > threshold) {
-            fprintf(stderr, "Power bond mismatch at sample %lld: %f\n", i, diffs[i]);
+            fprintf(stderr, "Power bond mismatch at sample %zu: %f\n", i, diffs[i]);
             goto Lfailure;
         }
     }
