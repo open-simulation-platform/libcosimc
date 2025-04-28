@@ -69,6 +69,7 @@ class LibCosimCConan(ConanFile):
             with env.vars(self).apply():
                 cmake.test()
 
+    # TODO: Remove this
     def generate(self):
         build_type = self.settings.get_safe("build_type", "Debug")
         bin_dir = os.path.join(self.build_folder, "output", str(build_type).lower(), "bin")
