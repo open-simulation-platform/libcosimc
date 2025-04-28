@@ -34,7 +34,7 @@ typedef uint32_t cosim_value_reference;
 typedef int cosim_slave_index;
 
 /// Step number
-typedef long long cosim_step_number;
+typedef int64_t cosim_step_number;
 
 /// Error codes.
 typedef enum
