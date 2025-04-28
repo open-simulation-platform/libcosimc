@@ -3,7 +3,7 @@ import os
 from conan import ConanFile
 from conan.tools.cmake import CMake, cmake_layout
 from conan.tools.env import VirtualRunEnv
-from conan.tools.files import load
+from conan.tools.files import load, copy
 
 
 class LibCosimCConan(ConanFile):
@@ -45,7 +45,7 @@ class LibCosimCConan(ConanFile):
         "doxygen/1.9.1",
     )
     requires = (
-        "libcosim/0.10.4@osp/stable",
+        "libcosim/0.11.0@osp/stable",
     )
 
     # Exports
@@ -53,7 +53,7 @@ class LibCosimCConan(ConanFile):
     exports_sources = "*"
 
     # Build steps
-    generators = "CMakeDeps", "CMakeToolchain"
+    generators = "CMakeDeps", "CMakeToolchain", "VirtualRunEnv"
 
     def layout(self):
         cmake_layout(self)
@@ -68,6 +68,21 @@ class LibCosimCConan(ConanFile):
             env.define("CTEST_OUTPUT_ON_FAILURE", "ON")
             with env.vars(self).apply():
                 cmake.test()
+
+    def generate(self):
+        build_type = self.settings.get_safe("build_type", "Debug")
+        bin_dir = os.path.join(self.build_folder, "output", str(build_type).lower(), "bin")
+        lib_dir = os.path.join(self.build_folder, "output", str(build_type).lower(), "lib")
+
+        for dep in self.dependencies.values():
+            for dep_bin_dir in dep.cpp_info.bindirs:
+                copy(self, "*.dll", src=dep_bin_dir, dst=bin_dir, keep_path=False)
+                if build_type == "Debug":
+                    copy(self, "*.pdb", src=dep_bin_dir, dst=bin_dir, keep_path=False)
+
+            for dep_lib_dir in dep.cpp_info.libdirs:
+                copy(self, "*.so.*", src=dep_lib_dir, dst=lib_dir, keep_path=False)
+                copy(self, "*.so", src=dep_lib_dir, dst=lib_dir, keep_path=False)
 
     # Packaging
     def package(self):

@@ -128,6 +128,11 @@ struct cosim_execution_s;
 typedef struct cosim_execution_s cosim_execution;
 
 
+struct cosim_algorithm_s;
+
+/// An opaque object which contains the configuration for a cosimulation algorithm.
+typedef struct cosim_algorithm_s cosim_algorithm;
+
 /**
  *  Creates a new execution.
  * 
@@ -142,6 +147,58 @@ typedef struct cosim_execution_s cosim_execution;
 cosim_execution* cosim_execution_create(
     cosim_time_point startTime,
     cosim_duration stepSize);
+
+/**
+ * Creates an ecco algorithm
+ * \param [in] ...
+ * \returns A pointer to a new instance of cosim_algorithm
+ */
+cosim_algorithm* cosim_ecco_algorithm_create(
+    double safetyFactor,
+    double stepSize,
+    double minStepSize,
+    double maxStepSize,
+    double minChangeRate,
+    double maxChangeRate,
+    double absTolerance,
+    double relTolerance,
+    double pGain,
+    double iGain);
+
+/**
+ * Creates a power bond between models
+ * \param [in] ...
+ * \returns
+ *      0 on success and -1 on error.
+ */
+int cosim_ecco_add_power_bond(
+    cosim_algorithm* algo,
+    cosim_slave_index m1Index,
+    cosim_value_reference u1,
+    cosim_value_reference v1,
+    cosim_slave_index m2Index,
+    cosim_value_reference u2,
+    cosim_value_reference v2);
+
+/**
+ * Creates a fixed step algorithm
+ *  \param [in] stepSize
+ *      The execution step size.
+ */
+cosim_algorithm* cosim_fixed_step_algorithm_create(cosim_duration stepSize);
+
+/**
+ *  Creates a new execution.
+ *
+ *  \param [in] startTime
+ *      The (logical) time point at which the simulation should start.
+ *  \param [in] algo*
+ *      Co-simulation algorithm object
+ *  \returns
+ *      A pointer to an object which holds the execution state,
+ *      or NULL on error.
+ */
+cosim_execution* cosim_execution_create_v2(cosim_time_point startTime, cosim_algorithm* algo);
 
 /**
  *  Creates a new execution based on an OspSystemStructure.xml file.
