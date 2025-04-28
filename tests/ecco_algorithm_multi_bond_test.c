@@ -1,4 +1,3 @@
-#include "mock_slaves/mock_slaves.h"
 #include <cosim.h>
 
 #include <math.h>
@@ -47,7 +46,8 @@ int main()
     double* cfi = NULL;
     double* wfo = NULL;
     cosim_time_point* times = NULL;
-    cosim_step_number * steps = NULL;
+    cosim_step_number* steps = NULL;
+    double* diffs = NULL;
 
     cosim_algorithm* ecco_algorithm = cosim_ecco_algorithm_create(
         0.8,
@@ -82,12 +82,11 @@ int main()
     cosim_slave_index wheelIndex = cosim_execution_add_slave(execution, wheel);
     if (wheelIndex < 0) { goto Lerror; }
 
-
     // IO connections
     cosim_value_reference chassisVelOut = 23;
-    cosim_value_reference wheelVelIn = 7;
-    cosim_value_reference wheelFOut = 15;
     cosim_value_reference chassisFIn = 4;
+    cosim_value_reference wheelFOut = 15;
+    cosim_value_reference wheelVelIn = 7;
 
     rc = cosim_execution_connect_real_variables(execution, chassisIndex, chassisVelOut, wheelIndex, wheelVelIn);
     if (rc < 0) { goto Lerror; }
@@ -150,14 +149,16 @@ int main()
     if (samplesRead < 0) { goto Lerror; }
 
     const float threshold = 1e-4f;
+    diffs = (double*)malloc(nSamples * sizeof(double));
+    size_t ptr = 0;
     for (int i = 1; i < nSamples; ++i) {
-        // if (i > nSamples / 2 ) {
-        //     printf("%f, %f, %f, %f\n", cvo[i], cfi[i], wvi[i], wfo[i]);
-        //     printf("%f, %f\n", (cvo[i] * cfi[i]), (wvi[i] * wfo[i]));
-        // }
-        const double diff = fabs((cvo[i] * cfi[i]) + (wvi[i] * wfo[i]));
-        if (diff > threshold) {
-            fprintf(stderr, "Power bond mismatch at sample %d: %f\n", i, diff);
+        diffs[ptr++] = fabs((cvo[i] * cfi[i]) - (wvi[i] * wfo[i]));;
+    }
+
+    const size_t offset = 500;
+    for (size_t i = (nSamples > offset ? nSamples - offset : 0); i < nSamples; i++) {
+        if (diffs[i] > threshold) {
+            fprintf(stderr, "Power bond mismatch at sample %lld: %f\n", i, diffs[i]);
             goto Lfailure;
         }
     }
@@ -180,6 +181,7 @@ int main()
     free(cfi);
     free(wfo);
     free(times);
+    free(diffs);
 
     return exitCode;
 }

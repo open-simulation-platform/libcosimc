@@ -149,8 +149,17 @@ cosim_execution* cosim_execution_create(
     cosim_duration stepSize);
 
 /**
- * Creates an ecco algorithm
- * \param [in] ...
+ * Creates an ecco algorithm with the specified parameters.
+ * \param [in] safetyFactor Safety factor
+ * \param [in] stepSize Initial step size
+ * \param [in] minStepSize Minimum step size
+ * \param [in] maxStepSize Maximum step size
+ * \param [in] minChangeRate Minimum rate of change in step size
+ * \param [in] maxChangeRate Maximum rate of change in step size
+ * \param [in] absTolerance Absolute tolerance for deciding mismatch in the residual power
+ * \param [in] relTolerance Relative tolerance for deciding mismatch in the residual power
+ * \param [in] pGain Proportional value in the PI controller
+ * \param [in] iGain Integral value in the PI controller
  * \returns A pointer to a new instance of cosim_algorithm
  */
 cosim_algorithm* cosim_ecco_algorithm_create(
@@ -166,19 +175,25 @@ cosim_algorithm* cosim_ecco_algorithm_create(
     double iGain);
 
 /**
- * Creates a power bond between models
- * \param [in] ...
+ * Creates a power bond between two instances of models
+ * \param [in] Ecco An algorithm instance
+ * \param [in] index1 Slave index for the first model
+ * \param [in] v1 The output of the first model
+ * \param [in] u1 The input of the first model
+ * \param [in] index2 Slave index Id for the second model
+ * \param [in] v2 The output of the second model
+ * \param [in] u2 The input of the second model
  * \returns
  *      0 on success and -1 on error.
  */
 int cosim_ecco_add_power_bond(
     cosim_algorithm* algo,
     cosim_slave_index m1Index,
-    cosim_value_reference u1,
     cosim_value_reference v1,
+    cosim_value_reference u1,
     cosim_slave_index m2Index,
-    cosim_value_reference u2,
-    cosim_value_reference v2);
+    cosim_value_reference v2,
+    cosim_value_reference u2);
 
 /**
  * Creates a fixed step algorithm

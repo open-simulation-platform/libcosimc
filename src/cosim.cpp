@@ -298,10 +298,10 @@ cosim_execution* cosim_osp_config_execution_create(
 
 int cosim_ecco_add_power_bond(
     cosim_algorithm* algo,
-    cosim_slave_index m1Index,
+    cosim_slave_index index1,
     cosim_value_reference v1,
     cosim_value_reference u1,
-    cosim_slave_index m2Index,
+    cosim_slave_index index2,
     cosim_value_reference v2,
     cosim_value_reference u2)
 {
@@ -310,11 +310,11 @@ int cosim_ecco_add_power_bond(
         if (!ecco_algorithm) {
             throw std::invalid_argument("Invalid algorithm type. Expected ecco_algorithm.");
         }
-        auto v1id = cosim::variable_id{m1Index, cosim::variable_type::real, v1};
-        auto u1id = cosim::variable_id{m1Index, cosim::variable_type::real, u1};
-        auto v2id = cosim::variable_id{m2Index, cosim::variable_type::real, v2};
-        auto u2id = cosim::variable_id{m2Index, cosim::variable_type::real, u2};
-        ecco_algorithm->add_power_bond(v1id, u2id, v2id, u2id);
+        auto v1id = cosim::variable_id{index1, cosim::variable_type::real, v1};
+        auto u1id = cosim::variable_id{index1, cosim::variable_type::real, u1};
+        auto v2id = cosim::variable_id{index2, cosim::variable_type::real, v2};
+        auto u2id = cosim::variable_id{index2, cosim::variable_type::real, u2};
+        ecco_algorithm->add_power_bond(v1id, u1id, v2id, u2id);
         return success;
     } catch (...) {
         handle_current_exception();
