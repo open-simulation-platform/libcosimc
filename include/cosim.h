@@ -160,7 +160,7 @@ cosim_execution* cosim_execution_create(
  * \param [in] relTolerance Relative tolerance for deciding mismatch in the residual power
  * \param [in] pGain Proportional value in the PI controller
  * \param [in] iGain Integral value in the PI controller
- * \returns A pointer to a new instance of cosim_algorithm
+ * \returns A pointer to a new instance of cosim_algorithm, or NULL if an error occurred.
  */
 cosim_algorithm* cosim_ecco_algorithm_create(
     double safetyFactor,
@@ -199,6 +199,7 @@ int cosim_ecco_add_power_bond(
  * Creates a fixed step algorithm
  *  \param [in] stepSize
  *      The execution step size.
+ * \returns A pointer to a new instance of cosim_algorithm, or NULL if an error occurred.
  */
 cosim_algorithm* cosim_fixed_step_algorithm_create(cosim_duration stepSize);
 

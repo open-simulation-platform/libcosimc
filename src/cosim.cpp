@@ -171,30 +171,40 @@ cosim_algorithm* cosim_ecco_algorithm_create(
     double pGain,
     double iGain)
 {
-    cosim::ecco_algorithm_params ecco_params = {
-        safetyFactor,
-        cosim::to_duration(stepSize),
-        cosim::to_duration(minStepSize),
-        cosim::to_duration(maxStepSize),
-        minChangeRate,
-        maxChangeRate,
-        absTolerance,
-        relTolerance,
-        pGain,
-        iGain};
+    try{
+        cosim::ecco_algorithm_params ecco_params = {
+            safetyFactor,
+            cosim::to_duration(stepSize),
+            cosim::to_duration(minStepSize),
+            cosim::to_duration(maxStepSize),
+            minChangeRate,
+            maxChangeRate,
+            absTolerance,
+            relTolerance,
+            pGain,
+            iGain};
 
-    auto algo = std::make_unique<cosim_algorithm>();
-    algo->algorithm = std::make_shared<cosim::ecco_algorithm>(ecco_params);
-    algo->type = ECCO;
-    return algo.release();
+        auto algo = std::make_unique<cosim_algorithm>();
+        algo->algorithm = std::make_shared<cosim::ecco_algorithm>(ecco_params);
+        algo->type = ECCO;
+        return algo.release();
+    } catch (...) {
+        handle_current_exception();
+        return nullptr;
+    }
 }
 
 cosim_algorithm* cosim_fixed_step_algorithm_create(cosim_duration stepSize)
 {
-    auto algo = std::make_unique<cosim_algorithm>();
-    algo->algorithm = std::make_shared<cosim::fixed_step_algorithm>(to_duration(stepSize));
-    algo->type = FIXED_STEP;
-    return algo.release();
+    try{
+        auto algo = std::make_unique<cosim_algorithm>();
+        algo->algorithm = std::make_shared<cosim::fixed_step_algorithm>(to_duration(stepSize));
+        algo->type = FIXED_STEP;
+        return algo.release();
+    } catch (...) {
+        handle_current_exception();
+        return nullptr;
+    }
 }
 
 struct cosim_execution_s
