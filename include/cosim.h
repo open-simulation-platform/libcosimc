@@ -204,6 +204,14 @@ int cosim_ecco_add_power_bond(
 cosim_algorithm* cosim_fixed_step_algorithm_create(cosim_duration stepSize);
 
 /**
+ *  Destroys a co-simulation algorithm .
+ *
+ *  \returns
+ *      0 on success and -1 on error.
+ */
+int cosim_algorithm_destroy(cosim_algorithm* algorithm);
+
+/**
  *  Creates a new execution.
  *
  *  \param [in] startTime

@@ -207,6 +207,19 @@ cosim_algorithm* cosim_fixed_step_algorithm_create(cosim_duration stepSize)
     }
 }
 
+int cosim_algorithm_destroy(cosim_algorithm* algorithm)
+{
+    try {
+        if (!algorithm) return success;
+        const auto owned = std::unique_ptr<cosim_algorithm>(algorithm);
+        return success;
+    } catch (...) {
+        handle_current_exception();
+        return failure;
+    }
+}
+
+
 struct cosim_execution_s
 {
     std::unique_ptr<cosim::execution> cpp_execution;
