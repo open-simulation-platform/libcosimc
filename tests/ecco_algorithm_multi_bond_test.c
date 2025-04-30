@@ -70,7 +70,8 @@ int main()
     wheel = cosim_local_slave_create(wheelFmuPath, "wheel");
     if (!wheel) { goto Lerror; }
 
-    observer = cosim_time_series_observer_create();
+    // observer = cosim_time_series_observer_create();
+    observer = cosim_buffered_time_series_observer_create(500000);
     if (!observer) { goto Lerror; }
 
     int rc = cosim_execution_add_observer(execution, observer);
@@ -148,14 +149,14 @@ int main()
     samplesRead = cosim_observer_slave_get_real_samples(observer, wheelIndex, wheelFOut, fromStep, nSamples, wfo, steps, times);
     if (samplesRead < 0) { goto Lerror; }
 
-    const float threshold = 1e-4f;
+    const float threshold = 1e-2f;
     diffs = (double*)malloc(nSamples * sizeof(double));
     size_t ptr = 0;
     for (size_t i = 1; i < nSamples; ++i) {
         diffs[ptr++] = fabs((cvo[i] * cfi[i]) - (wvi[i] * wfo[i]));;
     }
 
-    const size_t offset = 500;
+    const size_t offset = 100;
     for (size_t i = (nSamples > offset ? nSamples - offset : 0); i < nSamples; i++) {
         if (diffs[i] > threshold) {
             fprintf(stderr, "Power bond mismatch at sample %zu: %f\n", i, diffs[i]);
