@@ -233,7 +233,7 @@ struct cosim_execution_s
     int error_code;
 };
 
-cosim_execution* cosim_execution_create_v2(cosim_time_point startTime, cosim_algorithm* algo)
+cosim_execution* cosim_execution_create_with_algorithm(cosim_time_point startTime, cosim_algorithm* algo)
 {
     try {
         // No exceptions are possible right now, so try...catch and unique_ptr
@@ -255,8 +255,6 @@ cosim_execution* cosim_execution_create_v2(cosim_time_point startTime, cosim_alg
     }
 }
 
-[[deprecated("cosim_execution_create(startTime, stepSize) is deprecated and scheduled to be removed in future release."
-             "Use cosim_execution_create(startTime, algorithm) instead")]]
 cosim_execution* cosim_execution_create(cosim_time_point startTime, cosim_duration stepSize)
 {
     try {

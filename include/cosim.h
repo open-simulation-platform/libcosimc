@@ -212,7 +212,7 @@ cosim_algorithm* cosim_fixed_step_algorithm_create(cosim_duration stepSize);
 int cosim_algorithm_destroy(cosim_algorithm* algorithm);
 
 /**
- *  Creates a new execution.
+ *  Creates a new execution with the given co-simulation algorithm.
  *
  *  \param [in] startTime
  *      The (logical) time point at which the simulation should start.
@@ -222,7 +222,7 @@ int cosim_algorithm_destroy(cosim_algorithm* algorithm);
  *      A pointer to an object which holds the execution state,
  *      or NULL on error.
  */
-cosim_execution* cosim_execution_create_v2(cosim_time_point startTime, cosim_algorithm* algo);
+cosim_execution* cosim_execution_create_with_algorithm(cosim_time_point startTime, cosim_algorithm* algo);
 
 /**
  *  Creates a new execution based on an OspSystemStructure.xml file.
