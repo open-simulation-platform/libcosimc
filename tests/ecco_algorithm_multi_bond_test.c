@@ -61,7 +61,7 @@ int main()
         0.2,
         0.15);
 
-    execution = cosim_execution_create_v2(0, ecco_algorithm);
+    execution = cosim_execution_create_with_algorithm(0, ecco_algorithm);
     if (!execution) {goto Lerror;}
 
     chassis = cosim_local_slave_create(chassisFmuPath, "chassis");
