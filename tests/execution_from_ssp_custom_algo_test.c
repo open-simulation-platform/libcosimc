@@ -68,10 +68,12 @@ int main()
     if (rc < 0) { goto Lerror; }
 
     char name[SLAVE_NAME_MAX_SIZE];
+    int found_slave = 0;
     for (size_t i = 0; i < numSlaves; i++) {
-        strncpy_s(name, SLAVE_NAME_MAX_SIZE, infos[i].name, SLAVE_NAME_MAX_SIZE-1);
-        name[SLAVE_NAME_MAX_SIZE-1] = '\0';
+        strncpy(name, infos[i].name, SLAVE_NAME_MAX_SIZE - 1);
+        name[SLAVE_NAME_MAX_SIZE - 1] = '\0';
         if (0 == strncmp(name, "KnuckleBoomCrane", SLAVE_NAME_MAX_SIZE)) {
+            found_slave = 1;
             double value = -1;
             cosim_slave_index slaveIndex = infos[i].index;
             cosim_value_reference varIndex = 2;
@@ -84,6 +86,10 @@ int main()
                 goto Lfailure;
             }
         }
+    }
+    if (!found_slave) {
+        fprintf(stderr, "Slave not found: %s\n", name);
+        goto Lfailure;
     }
 
     cosim_execution_start(execution);
