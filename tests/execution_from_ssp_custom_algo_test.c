@@ -69,7 +69,8 @@ int main()
 
     char name[SLAVE_NAME_MAX_SIZE];
     for (size_t i = 0; i < numSlaves; i++) {
-        strcpy(name, infos[i].name);
+        strncpy_s(name, SLAVE_NAME_MAX_SIZE, infos[i].name, SLAVE_NAME_MAX_SIZE-1);
+        name[SLAVE_NAME_MAX_SIZE-1] = '\0';
         if (0 == strncmp(name, "KnuckleBoomCrane", SLAVE_NAME_MAX_SIZE)) {
             double value = -1;
             cosim_slave_index slaveIndex = infos[i].index;
