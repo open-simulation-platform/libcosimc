@@ -8,6 +8,7 @@
 
 #include <cosim.h>
 #include <cosim/algorithm.hpp>
+#include <cosim/algorithm/ecco_algorithm.hpp>
 #include <cosim/exception.hpp>
 #include <cosim/execution.hpp>
 #include <cosim/fmi/fmu.hpp>
@@ -145,6 +146,80 @@ const char* cosim_last_error_message()
     return g_lastErrorMessage.c_str();
 }
 
+
+enum AlgorithmType
+{
+    FIXED_STEP,
+    ECCO
+};
+
+struct cosim_algorithm_s
+{
+    std::shared_ptr<cosim::algorithm> algorithm;
+    AlgorithmType type;
+};
+
+cosim_algorithm* cosim_ecco_algorithm_create(
+    double safetyFactor,
+    double stepSize,
+    double minStepSize,
+    double maxStepSize,
+    double minChangeRate,
+    double maxChangeRate,
+    double absTolerance,
+    double relTolerance,
+    double pGain,
+    double iGain)
+{
+    try{
+        cosim::ecco_algorithm_params ecco_params = {
+            safetyFactor,
+            cosim::to_duration(stepSize),
+            cosim::to_duration(minStepSize),
+            cosim::to_duration(maxStepSize),
+            minChangeRate,
+            maxChangeRate,
+            absTolerance,
+            relTolerance,
+            pGain,
+            iGain};
+
+        auto algo = std::make_unique<cosim_algorithm>();
+        algo->algorithm = std::make_shared<cosim::ecco_algorithm>(ecco_params);
+        algo->type = ECCO;
+        return algo.release();
+    } catch (...) {
+        handle_current_exception();
+        return nullptr;
+    }
+}
+
+cosim_algorithm* cosim_fixed_step_algorithm_create(cosim_duration stepSize)
+{
+    try{
+        auto algo = std::make_unique<cosim_algorithm>();
+        algo->algorithm = std::make_shared<cosim::fixed_step_algorithm>(to_duration(stepSize));
+        algo->type = FIXED_STEP;
+        return algo.release();
+    } catch (...) {
+        handle_current_exception();
+        return nullptr;
+    }
+}
+
+int cosim_algorithm_destroy(cosim_algorithm* algorithm)
+{
+    try {
+        if (!algorithm) return success;
+        const auto owned = std::unique_ptr<cosim_algorithm>(algorithm);
+        return success;
+    } catch (...) {
+        handle_current_exception();
+        return failure;
+    }
+}
+
+
 struct cosim_execution_s
 {
     std::unique_ptr<cosim::execution> cpp_execution;
@@ -157,6 +232,28 @@ struct cosim_execution_s
     std::atomic<cosim_execution_state> state;
     int error_code;
 };
+
+cosim_execution* cosim_execution_create_with_algorithm(cosim_time_point startTime, cosim_algorithm* algo)
+{
+    try {
+        // No exceptions are possible right now, so try...catch and unique_ptr
+        // are strictly unnecessary, but this will change soon enough.
+        auto execution = std::make_unique<cosim_execution>();
+
+        execution->cpp_execution = std::make_unique<cosim::execution>(
+            to_time_point(startTime),
+            algo->algorithm);
+        execution->real_time_config = execution->cpp_execution->get_real_time_config();
+        execution->real_time_metrics = execution->cpp_execution->get_real_time_metrics();
+        execution->error_code = COSIM_ERRC_SUCCESS;
+        execution->state = COSIM_EXECUTION_STOPPED;
+
+        return execution.release();
+    } catch (...) {
+        handle_current_exception();
+        return nullptr;
+    }
+}
 
 cosim_execution* cosim_execution_create(cosim_time_point startTime, cosim_duration stepSize)
 {
@@ -190,10 +287,20 @@ cosim_execution* cosim_osp_config_execution_create(
 
         auto resolver = cosim::default_model_uri_resolver();
         const auto config = cosim::load_osp_config(configPath, *resolver);
+        std::shared_ptr<cosim::algorithm> algorithm;
+
+        std::visit([&algorithm, &config](auto&& value) {
+            using T = std::decay_t<decltype(value)>;
+            if constexpr (std::is_same_v<T, cosim::fixed_step_algorithm_params>) {
+                algorithm = std::make_shared<cosim::fixed_step_algorithm>(std::get<cosim::fixed_step_algorithm_params>(config.algorithm_configuration));
+            } else if constexpr (std::is_same_v<T, cosim::ecco_algorithm_params>) {
+                algorithm = std::make_shared<cosim::ecco_algorithm>(std::get<cosim::ecco_algorithm_params>(config.algorithm_configuration));
+            }
+        }, config.algorithm_configuration);
 
         execution->cpp_execution = std::make_unique<cosim::execution>(
             startTimeDefined ? to_time_point(startTime) : config.start_time,
-            std::make_shared<cosim::fixed_step_algorithm>(config.step_size));
+            algorithm);
         execution->entity_maps = cosim::inject_system_structure(
             *execution->cpp_execution,
             config.system_structure,
@@ -207,6 +314,32 @@ cosim_execution* cosim_osp_config_execution_create(
     } catch (...) {
         handle_current_exception();
         return nullptr;
+    }
+}
+
+int cosim_ecco_add_power_bond(
+    cosim_algorithm* algo,
+    cosim_slave_index index1,
+    cosim_value_reference v1,
+    cosim_value_reference u1,
+    cosim_slave_index index2,
+    cosim_value_reference v2,
+    cosim_value_reference u2)
+{
+    try {
+        auto* ecco_algorithm = dynamic_cast<cosim::ecco_algorithm*>(algo->algorithm.get());
+        if (!ecco_algorithm) {
+            throw std::invalid_argument("Invalid algorithm type. Expected ecco_algorithm.");
+        }
+        auto v1id = cosim::variable_id{index1, cosim::variable_type::real, v1};
+        auto u1id = cosim::variable_id{index1, cosim::variable_type::real, u1};
+        auto v2id = cosim::variable_id{index2, cosim::variable_type::real, v2};
+        auto u2id = cosim::variable_id{index2, cosim::variable_type::real, u2};
+        ecco_algorithm->add_power_bond(v1id, u1id, v2id, u2id);
+        return success;
+    } catch (...) {
+        handle_current_exception();
+        return failure;
     }
 }
 

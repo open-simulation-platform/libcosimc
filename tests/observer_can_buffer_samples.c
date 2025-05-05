@@ -126,7 +126,7 @@ int main()
             goto Lfailure;
         }
         if (expectedSteps[i] != steps[i]) {
-            fprintf(stderr, "Sample nr %d expected step %li, got %lli\n", i, expectedSteps[i], steps[i]);
+            fprintf(stderr, "Sample nr %d expected step %li, got %" PRId64 "\n", i, expectedSteps[i], steps[i]);
             goto Lfailure;
         }
         if (expectedTimeSamples[i] != times[i]) {
@@ -140,11 +140,11 @@ int main()
     rc = cosim_observer_get_step_numbers_for_duration(observer, 0, dur, nums);
     if (rc < 0) { goto Lerror; }
     if (nums[0] != 5) {
-        fprintf(stderr, "Expected step number %i, got %lli\n", 5, nums[0]);
+        fprintf(stderr, "Expected step number %i, got %" PRId64 "\n", 5, nums[0]);
         goto Lfailure;
     }
     if (nums[1] != 10) {
-        fprintf(stderr, "Expected step number %i, got %lli\n", 10, nums[1]);
+        fprintf(stderr, "Expected step number %i, got %" PRId64 "\n", 10, nums[1]);
         goto Lfailure;
     }
 
@@ -153,11 +153,11 @@ int main()
     rc = cosim_observer_get_step_numbers(observer, 0, t1, t2, nums);
     if (rc < 0) { goto Lerror; }
     if (nums[0] != 3) {
-        fprintf(stderr, "Expected step number %i, got %lli\n", 3, nums[0]);
+        fprintf(stderr, "Expected step number %i, got %" PRId64 "\n", 3, nums[0]);
         goto Lfailure;
     }
     if (nums[1] != 6) {
-        fprintf(stderr, "Expected step number %i, got %lli\n", 6, nums[1]);
+        fprintf(stderr, "Expected step number %i, got %" PRId64 "\n", 6, nums[1]);
         goto Lfailure;
     }
 

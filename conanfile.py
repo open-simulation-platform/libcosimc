@@ -3,7 +3,7 @@ import os
 from conan import ConanFile
 from conan.tools.cmake import CMake, cmake_layout
 from conan.tools.env import VirtualRunEnv
-from conan.tools.files import load
+from conan.tools.files import load, copy
 
 
 class LibCosimCConan(ConanFile):
@@ -45,7 +45,7 @@ class LibCosimCConan(ConanFile):
         "doxygen/1.9.1",
     )
     requires = (
-        "libcosim/0.10.4@osp/stable",
+        "libcosim/0.11.0@osp/stable",
     )
 
     # Exports
@@ -53,7 +53,7 @@ class LibCosimCConan(ConanFile):
     exports_sources = "*"
 
     # Build steps
-    generators = "CMakeDeps", "CMakeToolchain"
+    generators = "CMakeDeps", "CMakeToolchain", "VirtualRunEnv"
 
     def layout(self):
         cmake_layout(self)

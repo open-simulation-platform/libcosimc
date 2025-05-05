@@ -93,8 +93,8 @@ set(LIBCOSIMC_EXPORT_TARGET "${PROJECT_NAME}-targets")
 # ==============================================================================
 # Dependencies
 # ==============================================================================
-
 find_package(libcosim REQUIRED)
+find_package(libcbor REQUIRED) # To avoid cmake config error
 
 # ==============================================================================
 # Targets
@@ -188,6 +188,7 @@ if(LIBCOSIMC_BUILD_TESTS)
             "single_fmu_execution_test"
             "time_series_observer_test"
             "variable_metadata_test"
+            "ecco_algorithm_multi_bond_test"
             )
 
     foreach(testName IN LISTS tests)

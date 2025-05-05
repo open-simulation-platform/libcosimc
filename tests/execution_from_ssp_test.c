@@ -54,14 +54,21 @@ int main()
 
     size_t numSlaves = cosim_execution_get_num_slaves(execution);
 
+    if (numSlaves != 2) {
+        fprintf(stderr, "Expected numSlaves = 2; got %zu\n", numSlaves);
+        goto Lfailure;
+    }
+
     cosim_slave_info infos[2];
     rc = cosim_execution_get_slave_infos(execution, &infos[0], numSlaves);
     if (rc < 0) { goto Lerror; }
 
     char name[SLAVE_NAME_MAX_SIZE];
+    int found_slave = 0;
     for (size_t i = 0; i < numSlaves; i++) {
         strcpy(name, infos[i].name);
         if (0 == strncmp(name, "KnuckleBoomCrane", SLAVE_NAME_MAX_SIZE)) {
+            found_slave = 1;
             double value = -1;
             cosim_slave_index slaveIndex = infos[i].index;
             cosim_value_reference varIndex = 2;
@@ -74,6 +81,10 @@ int main()
                 goto Lfailure;
             }
         }
+    }
+    if (!found_slave) {
+        fprintf(stderr, "Slave not found: %s\n", name);
+        goto Lfailure;
     }
 
     cosim_execution_start(execution);

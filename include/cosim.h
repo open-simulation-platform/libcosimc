@@ -34,7 +34,7 @@ typedef uint32_t cosim_value_reference;
 typedef int cosim_slave_index;
 
 /// Step number
-typedef long long cosim_step_number;
+typedef int64_t cosim_step_number;
 
 /// Error codes.
 typedef enum
@@ -128,6 +128,11 @@ struct cosim_execution_s;
 typedef struct cosim_execution_s cosim_execution;
 
 
+struct cosim_algorithm_s;
+
+/// An opaque object which contains the configuration for a cosimulation algorithm.
+typedef struct cosim_algorithm_s cosim_algorithm;
+
 /**
  *  Creates a new execution.
  * 
@@ -142,6 +147,82 @@ typedef struct cosim_execution_s cosim_execution;
 cosim_execution* cosim_execution_create(
     cosim_time_point startTime,
     cosim_duration stepSize);
+
+/**
+ * Creates an ecco algorithm with the specified parameters.
+ * \param [in] safetyFactor Safety factor
+ * \param [in] stepSize Initial step size
+ * \param [in] minStepSize Minimum step size
+ * \param [in] maxStepSize Maximum step size
+ * \param [in] minChangeRate Minimum rate of change in step size
+ * \param [in] maxChangeRate Maximum rate of change in step size
+ * \param [in] absTolerance Absolute tolerance for deciding mismatch in the residual power
+ * \param [in] relTolerance Relative tolerance for deciding mismatch in the residual power
+ * \param [in] pGain Proportional value in the PI controller
+ * \param [in] iGain Integral value in the PI controller
+ * \returns A pointer to a new instance of cosim_algorithm, or NULL if an error occurred.
+ */
+cosim_algorithm* cosim_ecco_algorithm_create(
+    double safetyFactor,
+    double stepSize,
+    double minStepSize,
+    double maxStepSize,
+    double minChangeRate,
+    double maxChangeRate,
+    double absTolerance,
+    double relTolerance,
+    double pGain,
+    double iGain);
+
+/**
+ * Creates a power bond between two instances of models
+ * \param [in] Ecco An algorithm instance
+ * \param [in] index1 Slave index for the first model
+ * \param [in] v1 The output of the first model
+ * \param [in] u1 The input of the first model
+ * \param [in] index2 Slave index Id for the second model
+ * \param [in] v2 The output of the second model
+ * \param [in] u2 The input of the second model
+ * \returns
+ *      0 on success and -1 on error.
+ */
+int cosim_ecco_add_power_bond(
+    cosim_algorithm* algo,
+    cosim_slave_index m1Index,
+    cosim_value_reference v1,
+    cosim_value_reference u1,
+    cosim_slave_index m2Index,
+    cosim_value_reference v2,
+    cosim_value_reference u2);
+
+/**
+ * Creates a fixed step algorithm
+ *  \param [in] stepSize
+ *      The execution step size.
+ * \returns A pointer to a new instance of cosim_algorithm, or NULL if an error occurred.
+ */
+cosim_algorithm* cosim_fixed_step_algorithm_create(cosim_duration stepSize);
+
+/**
+ *  Destroys a co-simulation algorithm .
+ *
+ *  \returns
+ *      0 on success and -1 on error.
+ */
+int cosim_algorithm_destroy(cosim_algorithm* algorithm);
+
+/**
+ *  Creates a new execution with the given co-simulation algorithm.
+ *
+ *  \param [in] startTime
+ *      The (logical) time point at which the simulation should start.
+ *  \param [in] algo*
+ *      Co-simulation algorithm object
+ *  \returns
+ *      A pointer to an object which holds the execution state,
+ *      or NULL on error.
+ */
+cosim_execution* cosim_execution_create_with_algorithm(cosim_time_point startTime, cosim_algorithm* algo);
 
 /**
  *  Creates a new execution based on an OspSystemStructure.xml file.
