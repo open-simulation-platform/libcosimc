@@ -8,6 +8,7 @@
 
 #include <cosim.h>
 #include <cosim/algorithm.hpp>
+#include <cosim/algorithm/ecco_algorithm.hpp>
 #include <cosim/exception.hpp>
 #include <cosim/execution.hpp>
 #include <cosim/fmi/fmu.hpp>
@@ -20,7 +21,6 @@
 #include <cosim/osp_config_parser.hpp>
 #include <cosim/ssp/ssp_loader.hpp>
 #include <cosim/time.hpp>
-#include <cosim/algorithm/ecco_algorithm.hpp>
 
 #include <algorithm>
 #include <atomic>
