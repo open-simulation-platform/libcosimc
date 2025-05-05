@@ -1048,6 +1048,54 @@ int cosim_execution_connect_integer_variables(
     cosim_value_reference inputValueReference);
 
 
+/**
+ *  Connects one boolean output variable to one boolean input variable.
+ *
+ *  \param [in] execution
+ *      The execution.
+ *  \param [in] outputSlaveIndex
+ *      The source slave.
+ *  \param [in] outputValueReference
+ *      The source variable.
+ *  \param [in] inputSlaveIndex
+ *      The destination slave.
+ *  \param [in] inputValueReference
+ *      The destination variable.
+ *
+ *  \returns
+ *      0 on success and -1 on error.
+ */
+int cosim_execution_connect_boolean_variables(
+    cosim_execution* execution,
+    cosim_slave_index outputSlaveIndex,
+    cosim_value_reference outputValueReference,
+    cosim_slave_index inputSlaveIndex,
+    cosim_value_reference inputValueReference);
+
+
+/**
+ *  Connects one string output variable to one string input variable.
+ *
+ *  \param [in] execution
+ *      The execution.
+ *  \param [in] outputSlaveIndex
+ *      The source slave.
+ *  \param [in] outputValueReference
+ *      The source variable.
+ *  \param [in] inputSlaveIndex
+ *      The destination slave.
+ *  \param [in] inputValueReference
+ *      The destination variable.
+ *
+ *  \returns
+ *      0 on success and -1 on error.
+ */
+int cosim_execution_connect_string_variables(
+    cosim_execution* execution,
+    cosim_slave_index outputSlaveIndex,
+    cosim_value_reference outputValueReference,
+    cosim_slave_index inputSlaveIndex,
+    cosim_value_reference inputValueReference);
 /// Creates an observer which stores the last observed value for all variables.
 cosim_observer* cosim_last_value_observer_create();
 
