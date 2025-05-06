@@ -870,6 +870,28 @@ int cosim_execution_connect_integer_variables(
         cosim::variable_type::integer);
 }
 
+int cosim_execution_connect_boolean_variables(
+    cosim_execution* execution,
+    cosim_slave_index outputSlaveIndex,
+    cosim_value_reference outputValueReference,
+    cosim_slave_index inputSlaveIndex,
+    cosim_value_reference inputValueReference)
+{
+    return connect_variables(execution, outputSlaveIndex, outputValueReference, inputSlaveIndex, inputValueReference,
+        cosim::variable_type::boolean);
+}
+
+int cosim_execution_connect_string_variables(
+    cosim_execution* execution,
+    cosim_slave_index outputSlaveIndex,
+    cosim_value_reference outputValueReference,
+    cosim_slave_index inputSlaveIndex,
+    cosim_value_reference inputValueReference)
+{
+    return connect_variables(execution, outputSlaveIndex, outputValueReference, inputSlaveIndex, inputValueReference,
+        cosim::variable_type::string);
+}
+
 int cosim_observer_slave_get_real(
     cosim_observer* observer,
     cosim_slave_index slave,
