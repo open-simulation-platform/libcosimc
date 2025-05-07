@@ -37,7 +37,6 @@ class LibCosimCConan(ConanFile):
     def configure(self):
         if self.options.shared:
             self.options.rm_safe("fPIC")
-        self.options["*"].shared = self.options.shared
 
     # Dependencies/requirements
     tool_requires = (

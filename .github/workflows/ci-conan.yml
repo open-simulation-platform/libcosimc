@@ -46,6 +46,7 @@ jobs:
           conan create \
             --settings="build_type=${{ matrix.build_type }}" \
             --options="libcosimc/*:${{ matrix.option_shared }}" \
+            --options="libcosim/*:shared=False" \
             --options="libcosim/*:${{ matrix.option_proxyfmu }}" \
             --build=missing \
             --user=osp \
@@ -98,6 +99,7 @@ jobs:
           conan create \
             --settings="build_type=${{ matrix.build_type }}" \
             --options="libcosimc*:${{ matrix.option_shared }}" \
+            --options="libcosim/*:shared=False" \
             --options="libcosim/*:${{ matrix.option_proxyfmu }}" \
             --build=missing \
             --user=osp \
