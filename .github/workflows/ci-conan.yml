@@ -65,7 +65,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-2019]
+        os: [windows-2025]
         build_type: [Debug, Release]
         option_shared: ['shared=True', 'shared=False']
         option_proxyfmu: ['proxyfmu=True', 'proxyfmu=False']
