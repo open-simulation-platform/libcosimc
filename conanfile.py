@@ -41,11 +41,11 @@ class LibCosimCConan(ConanFile):
 
     # Dependencies/requirements
     tool_requires = (
-        "cmake/[>=3.15]",
+        "cmake/[>=4.0]",
         "doxygen/1.9.1",
     )
     requires = (
-        "libcosim/0.11.0@osp/stable",
+        "libcosim/0.11.2@osp/stable",
     )
 
     # Exports
