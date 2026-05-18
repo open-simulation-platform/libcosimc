@@ -41,6 +41,7 @@ class LibCosimCConan(ConanFile):
 
     # Dependencies/requirements
     tool_requires = (
+        "cmake/[>=4.0]",
         "doxygen/1.17.0",
     )
     requires = (
@@ -53,9 +54,6 @@ class LibCosimCConan(ConanFile):
 
     # Build steps
     generators = "CMakeDeps", "CMakeToolchain", "VirtualRunEnv"
-
-    def requirements(self):
-        self.tool_requires("cmake/[>=4.0]")
 
     def layout(self):
         cmake_layout(self)
