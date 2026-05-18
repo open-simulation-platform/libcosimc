@@ -33,6 +33,7 @@ jobs:
           conan profile detect
           conan remote add osp https://osp.jfrog.io/artifactory/api/conan/conan-local
       - name: Conan create
+        shell: bash
         run: |
           REFNAME="${GITHUB_REF#refs/*/}"
           VERSION="v$(<version.txt)"
@@ -80,7 +81,6 @@ jobs:
           conan profile detect
           conan remote add osp https://osp.jfrog.io/artifactory/api/conan/conan-local --force
       - name: Conan create
-        shell: bash
         run: |
           REFNAME="${GITHUB_REF#refs/*/}"
           VERSION="v$(<version.txt)"
