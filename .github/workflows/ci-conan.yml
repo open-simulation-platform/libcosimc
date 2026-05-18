@@ -32,7 +32,7 @@ jobs:
         run: |
           conan profile detect
           conan remote add osp https://osp.jfrog.io/artifactory/api/conan/conan-local
-      - name: Generate entrypoint.sh
+      - name: Conan create
         run: |
           REFNAME="${GITHUB_REF#refs/*/}"
           VERSION="v$(<version.txt)"
@@ -92,7 +92,7 @@ jobs:
           fi
           conan create \
             --settings="build_type=${{ matrix.build_type }}" \
-            --options="libcosimc*:${{ matrix.option_shared }}" \
+            --options="libcosimc/*:${{ matrix.option_shared }}" \
             --options="libcosim/*:${{ matrix.option_proxyfmu }}" \
             --build=missing \
             --user=osp \
