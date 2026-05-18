@@ -11,7 +11,7 @@ jobs:
       fail-fast: false
       matrix:
         build_type: [Debug, Release]
-        compiler_version: [13]
+        compiler_version: [14]
         option_shared: ['shared=True', 'shared=False']
         option_proxyfmu: ['proxyfmu=True', 'proxyfmu=False']
     container:
@@ -25,7 +25,7 @@ jobs:
       - name: Install prerequisites
         run: |
           apt-get update
-          apt-get install -y pipx
+          apt-get install -y pipx doxygen
           pipx install conan cmake
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
       - name: Configure Conan
