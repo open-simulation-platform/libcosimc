@@ -4,6 +4,11 @@ For a more detailed list of all changes, click the header links for each version
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+### [v0.11.2] - 2026-05-19
+- Updated CI badge and Windows runner image [🔗](https://github.com/open-simulation-platform/libcosimc/commit/d17660b6abcc980ff5327a07b177ce2b3b58334c)
+- Windows Runner image 2019 is deprectated [\#64](https://github.com/open-simulation-platform/libcosimc/issues/64)
+- Libcosim upgrade to v0.11.2 [\#65](https://github.com/open-simulation-platform/libcosimc/pull/65) ([davidhjp01](https://github.com/davidhjp01))
+
 ### [v0.11.0] - 2025-05-06
 - Using libcosim v0.11.0. 
 - Added support for API for using ECCO algorithm.
@@ -35,3 +40,4 @@ First release as separate library. `libcosimc` was part of the `libcosim` reposi
 [v0.10.2]: https://github.com/open-simulation-platform/libcosimc/compare/v0.10.1...v0.10.2
 [v0.10.4]: https://github.com/open-simulation-platform/libcosimc/compare/v0.10.2...v0.10.4
 [v0.11.0]: https://github.com/open-simulation-platform/libcosimc/compare/v0.10.4...v0.11.0
+[v0.11.2]: https://github.com/open-simulation-platform/libcosimc/compare/v0.11.0...v0.11.2
