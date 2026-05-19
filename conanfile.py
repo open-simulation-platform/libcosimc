@@ -43,6 +43,7 @@ class LibCosimCConan(ConanFile):
     # Dependencies/requirements
     tool_requires = (
         "cmake/[>=4.0]",
+        "doxygen/1.17.0",
     )
     requires = (
         "libcosim/0.11.2@osp/stable",
@@ -62,8 +63,8 @@ class LibCosimCConan(ConanFile):
         cmake = CMake(self)
         cmake.configure()
         cmake.build()
-        if shutil.which("doxygen"):
-            cmake.build(target="doc")
+        cmake.build(target="doc")
+
         if self._is_tests_enabled():
             env = VirtualRunEnv(self).environment()
             env.define("CTEST_OUTPUT_ON_FAILURE", "ON")
@@ -74,8 +75,7 @@ class LibCosimCConan(ConanFile):
     def package(self):
         cmake = CMake(self)
         cmake.install()
-        if shutil.which("doxygen"):
-            cmake.build(target="install-doc")
+        cmake.build(target="install-doc")
 
     def package_info(self):
         self.cpp_info.libs = [ "cosimc" ]
