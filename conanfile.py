@@ -1,4 +1,5 @@
 import os
+import shutil
 
 from conan import ConanFile
 from conan.tools.cmake import CMake, cmake_layout
@@ -61,7 +62,8 @@ class LibCosimCConan(ConanFile):
         cmake = CMake(self)
         cmake.configure()
         cmake.build()
-        cmake.build(target="doc")
+        if shutil.which("doxygen"):
+            cmake.build(target="doc")
         if self._is_tests_enabled():
             env = VirtualRunEnv(self).environment()
             env.define("CTEST_OUTPUT_ON_FAILURE", "ON")
@@ -72,7 +74,8 @@ class LibCosimCConan(ConanFile):
     def package(self):
         cmake = CMake(self)
         cmake.install()
-        cmake.build(target="install-doc")
+        if shutil.which("doxygen"):
+            cmake.build(target="install-doc")
 
     def package_info(self):
         self.cpp_info.libs = [ "cosimc" ]
