@@ -89,13 +89,16 @@ int main()
     cosim_value_reference wheelFOut = 15;
     cosim_value_reference wheelVelIn = 7;
 
+    // Name of the bond
+    const char *bondName = "power_bond";
+
     rc = cosim_execution_connect_real_variables(execution, chassisIndex, chassisVelOut, wheelIndex, wheelVelIn);
     if (rc < 0) { goto Lerror; }
     rc = cosim_execution_connect_real_variables(execution, wheelIndex, wheelFOut, chassisIndex, chassisFIn);
     if (rc < 0) { goto Lerror; }
 
     // Power bond connections
-    cosim_ecco_add_power_bond(ecco_algorithm, chassisIndex, chassisVelOut, chassisFIn, wheelIndex, wheelFOut, wheelVelIn);
+    cosim_ecco_add_power_bond(ecco_algorithm, bondName, chassisIndex, chassisVelOut, chassisFIn, wheelIndex, wheelFOut, wheelVelIn);
 
     // Initial values
     rc = cosim_execution_set_real_initial_value(execution, chassisIndex, 8, 400); // mass
