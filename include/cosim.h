@@ -188,6 +188,7 @@ cosim_algorithm* cosim_ecco_algorithm_create(
  */
 int cosim_ecco_add_power_bond(
     cosim_algorithm* algo,
+    const char* name, 
     cosim_slave_index m1Index,
     cosim_value_reference v1,
     cosim_value_reference u1,
