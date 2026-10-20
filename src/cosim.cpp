@@ -319,6 +319,7 @@ cosim_execution* cosim_osp_config_execution_create(
 
 int cosim_ecco_add_power_bond(
     cosim_algorithm* algo,
+    const char* name, 
     cosim_slave_index index1,
     cosim_value_reference v1,
     cosim_value_reference u1,
@@ -335,7 +336,7 @@ int cosim_ecco_add_power_bond(
         auto u1id = cosim::variable_id{index1, cosim::variable_type::real, u1};
         auto v2id = cosim::variable_id{index2, cosim::variable_type::real, v2};
         auto u2id = cosim::variable_id{index2, cosim::variable_type::real, u2};
-        ecco_algorithm->add_power_bond(v1id, u1id, v2id, u2id);
+        ecco_algorithm->add_power_bond(name, v1id, u1id, v2id, u2id);
         return success;
     } catch (...) {
         handle_current_exception();
